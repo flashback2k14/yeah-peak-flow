@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, effect, inject } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { DateTime } from 'luxon';
-import { ChartConfiguration } from 'chart.js';
+import { ChartConfiguration, Plugin } from 'chart.js';
 import { Subscription } from 'rxjs';
 import { DashboardService } from '../core/services/dashboard.service';
 import { ThemeService } from '../core/services/theme.service';
@@ -15,6 +15,9 @@ type DashboardPalette = {
   afterPoint: string;
   averageLine: string;
   averagePoint: string;
+  zoneGreenFill: string;
+  zoneYellowFill: string;
+  zoneRedFill: string;
   axisText: string;
   grid: string;
 };
@@ -35,6 +38,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private dashboardLoadGuardTimer: ReturnType<typeof setTimeout> | null = null;
   private activeLoadId = 0;
   private destroyed = false;
+  private currentPalette: DashboardPalette;
+  private zoneThresholds: { greenMin: number | null; yellowMin: number | null } = {
+    greenMin: null,
+    yellowMin: null
+  };
   private readonly lightPalette: DashboardPalette = {
     beforeLine: '#1d4ed8',
     beforePoint: '#1e40af',
@@ -42,6 +50,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     afterPoint: '#b91c1c',
     averageLine: '#6b7280',
     averagePoint: '#4b5563',
+    zoneGreenFill: 'rgba(34, 197, 94, 0.12)',
+    zoneYellowFill: 'rgba(245, 158, 11, 0.15)',
+    zoneRedFill: 'rgba(239, 68, 68, 0.14)',
     axisText: '#183046',
     grid: 'rgba(24, 48, 70, 0.14)'
   };
@@ -52,9 +63,53 @@ export class DashboardComponent implements OnInit, OnDestroy {
     afterPoint: '#f87171',
     averageLine: '#fcd34d',
     averagePoint: '#fbbf24',
+    zoneGreenFill: 'rgba(74, 222, 128, 0.2)',
+    zoneYellowFill: 'rgba(251, 191, 36, 0.22)',
+    zoneRedFill: 'rgba(248, 113, 113, 0.2)',
     axisText: '#e8f0f7',
     grid: 'rgba(232, 240, 247, 0.25)'
   };
+  readonly zoneBackgroundPlugin: Plugin<'line'> = {
+    id: 'zoneBackground',
+    beforeDatasetsDraw: (chart) => {
+      const { greenMin, yellowMin } = this.zoneThresholds;
+      if (!greenMin || !yellowMin) {
+        return;
+      }
+
+      const yScale = chart.scales['y'];
+      if (!yScale) {
+        return;
+      }
+
+      const { left, right, top, bottom } = chart.chartArea;
+      const width = right - left;
+      if (width <= 0 || bottom <= top) {
+        return;
+      }
+
+      const yGreen = Math.min(Math.max(yScale.getPixelForValue(greenMin), top), bottom);
+      const yYellow = Math.min(Math.max(yScale.getPixelForValue(yellowMin), top), bottom);
+
+      const ctx = chart.ctx;
+      ctx.save();
+
+      // Green zone: >= 80% personal best
+      ctx.fillStyle = this.currentPalette.zoneGreenFill;
+      ctx.fillRect(left, top, width, Math.max(0, yGreen - top));
+
+      // Yellow zone: 60% - <80%
+      ctx.fillStyle = this.currentPalette.zoneYellowFill;
+      ctx.fillRect(left, yGreen, width, Math.max(0, yYellow - yGreen));
+
+      // Red zone: <60%
+      ctx.fillStyle = this.currentPalette.zoneRedFill;
+      ctx.fillRect(left, yYellow, width, Math.max(0, bottom - yYellow));
+
+      ctx.restore();
+    }
+  };
+  readonly lineChartPlugins: Plugin<'line'>[] = [this.zoneBackgroundPlugin];
 
   monthCursor: DateTime<true | false> = DateTime.local().setLocale('de').startOf('month');
   loading = false;
@@ -145,6 +200,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   };
 
   constructor() {
+    this.currentPalette = this.darkPalette;
     effect(() => {
       const useDarkPalette = this.themeService.isDark();
       this.applyPalette(useDarkPalette ? this.darkPalette : this.lightPalette);
@@ -183,6 +239,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loadMonthlyData();
   }
 
+  get hasZoneConfiguration(): boolean {
+    return !!this.data?.stats.zone.personalBestLpm;
+  }
+
   private loadMonthlyData(): void {
     this.clearDashboardLoadState();
     const loadId = ++this.activeLoadId;
@@ -190,6 +250,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.errorMessage = '';
     this.data = null;
+    this.zoneThresholds = { greenMin: null, yellowMin: null };
     this.lineChartData = {
       labels: [],
       datasets: [
@@ -225,6 +286,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.loading = false;
             this.data = response;
             this.errorMessage = '';
+            this.zoneThresholds = {
+              greenMin: response.stats.zone.thresholds.greenMin,
+              yellowMin: response.stats.zone.thresholds.yellowMin
+            };
 
             this.lineChartData = {
               labels: response.series.map((point) => DateTime.fromISO(point.date).toFormat('dd.LL.')),
@@ -267,6 +332,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.clearDashboardLoadState();
           this.loading = false;
           this.data = null;
+          this.zoneThresholds = { greenMin: null, yellowMin: null };
           this.lineChartData = {
             labels: [],
             datasets: [
@@ -295,6 +361,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private applyPalette(palette: DashboardPalette): void {
+    this.currentPalette = palette;
     const [beforeDataset, afterDataset, averageDataset] = this.lineChartData.datasets;
 
     this.lineChartData = {

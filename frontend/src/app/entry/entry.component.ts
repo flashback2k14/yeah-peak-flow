@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DateTime } from 'luxon';
 import { Subscription } from 'rxjs';
@@ -26,6 +26,8 @@ type InhalationTiming = 'before_inhalation' | 'after_inhalation';
   styleUrls: ['./entry.component.scss']
 })
 export class EntryComponent implements OnInit, OnDestroy {
+  @ViewChild('createPeakFlowInput') private createPeakFlowInput?: ElementRef<HTMLInputElement>;
+
   private readonly fb = inject(FormBuilder);
   private readonly measurementsService = inject(MeasurementsService);
   private readonly ngZone = inject(NgZone);
@@ -190,7 +192,10 @@ export class EntryComponent implements OnInit, OnDestroy {
               inhalationTiming: 'before_inhalation',
               note: ''
             });
+            this.createForm.markAsPristine();
+            this.createForm.markAsUntouched();
             this.createNoteExpanded = false;
+            this.focusCreatePeakFlowInput();
             this.setActionSuccess('Messung erfolgreich gespeichert.');
             this.loadMonth();
           });
@@ -522,5 +527,11 @@ export class EntryComponent implements OnInit, OnDestroy {
   private combineDayAndTime(day: DateTime<true | false>, time: string): string {
     const [hours, minutes] = time.split(':').map(Number);
     return day.set({ hour: hours, minute: minutes, second: 0, millisecond: 0 }).toISO() ?? '';
+  }
+
+  private focusCreatePeakFlowInput(): void {
+    queueMicrotask(() => {
+      this.createPeakFlowInput?.nativeElement.focus();
+    });
   }
 }

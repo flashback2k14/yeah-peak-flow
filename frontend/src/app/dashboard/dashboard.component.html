@@ -23,6 +23,26 @@
     </div>
   </article>
 
+  <article class="card chart-card">
+    @if (loading) {
+    <p class="muted">Diagramm wird geladen...</p>
+    } @else if (errorMessage) {
+    <p class="error-text">{{ errorMessage }}</p>
+    } @else if (!data || data.series.length === 0) {
+    <p class="muted">Keine Daten fuer diesen Monat vorhanden.</p>
+    } @else {
+    <div class="chart-wrap">
+      <canvas
+        baseChart
+        [data]="lineChartData"
+        [options]="lineChartOptions"
+        [plugins]="lineChartPlugins"
+        [type]="'line'"
+      ></canvas>
+    </div>
+    }
+  </article>
+
   <article class="card stats" *ngIf="data as dashboardData">
     <div class="stat">
       <span class="muted">Messungen</span>
@@ -48,24 +68,40 @@
       <span class="muted">Ø nach Inhalation</span>
       <strong>{{ dashboardData.stats.avgAfterInhalation ?? '-' }} L/min</strong>
     </div>
+    <div class="stat">
+      <span class="muted">Persoenlicher Bestwert</span>
+      <strong>{{ dashboardData.stats.zone.personalBestLpm ?? '-' }} L/min</strong>
+    </div>
+    <div class="stat zone-green">
+      <span class="muted">Gruene Zone</span>
+      <strong>{{ dashboardData.stats.zone.counts.green }}</strong>
+    </div>
+    <div class="stat zone-yellow">
+      <span class="muted">Gelbe Zone</span>
+      <strong>{{ dashboardData.stats.zone.counts.yellow }}</strong>
+    </div>
+    <div class="stat zone-red">
+      <span class="muted">Rote Zone</span>
+      <strong>{{ dashboardData.stats.zone.counts.red }}</strong>
+    </div>
   </article>
 
-  <article class="card chart-card">
-    @if (loading) {
-    <p class="muted">Diagramm wird geladen...</p>
-    } @else if (errorMessage) {
-    <p class="error-text">{{ errorMessage }}</p>
-    } @else if (!data || data.series.length === 0) {
-    <p class="muted">Keine Daten fuer diesen Monat vorhanden.</p>
+  @if (data; as dashboardData) {
+    @if (!hasZoneConfiguration) {
+      <article class="card zone-hint">
+        <p class="muted">
+          Asthma-Zonen sind aktiv, sobald ein persoenlicher Bestwert in den Einstellungen hinterlegt ist.
+        </p>
+      </article>
     } @else {
-    <div class="chart-wrap">
-      <canvas
-        baseChart
-        [data]="lineChartData"
-        [options]="lineChartOptions"
-        [type]="'line'"
-      ></canvas>
-    </div>
+      <article class="card zone-hint">
+        <p class="muted">
+          Schwellen:
+          Gruen ab {{ dashboardData.stats.zone.thresholds.greenMin }} L/min,
+          Gelb ab {{ dashboardData.stats.zone.thresholds.yellowMin }} L/min,
+          Rot darunter.
+        </p>
+      </article>
     }
-  </article>
+  }
 </section>

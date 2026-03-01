@@ -25,6 +25,23 @@ export interface DashboardPoint {
   beforeInhalation: number | null;
   afterInhalation: number | null;
   avg: number;
+  beforeZone: 'green' | 'yellow' | 'red' | null;
+  afterZone: 'green' | 'yellow' | 'red' | null;
+  avgZone: 'green' | 'yellow' | 'red' | null;
+}
+
+export interface DashboardZoneStats {
+  personalBestLpm: number | null;
+  thresholds: {
+    yellowMin: number | null;
+    greenMin: number | null;
+  };
+  counts: {
+    green: number;
+    yellow: number;
+    red: number;
+    unclassified: number;
+  };
 }
 
 export interface DashboardStats {
@@ -34,6 +51,7 @@ export interface DashboardStats {
   avg: number | null;
   avgBeforeInhalation: number | null;
   avgAfterInhalation: number | null;
+  zone: DashboardZoneStats;
 }
 
 export interface DashboardMonthlyResponse {

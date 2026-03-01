@@ -9,6 +9,19 @@ export const dashboardRouter = Router();
 
 dashboardRouter.use(requireAuth);
 
+type AsthmaZone = 'green' | 'yellow' | 'red';
+
+const classifyAsthmaZone = (value: number, personalBestLpm: number): AsthmaZone => {
+  const ratio = value / personalBestLpm;
+  if (ratio >= 0.8) {
+    return 'green';
+  }
+  if (ratio >= 0.6) {
+    return 'yellow';
+  }
+  return 'red';
+};
+
 dashboardRouter.get(
   '/monthly',
   asyncHandler(async (req, res) => {
@@ -16,10 +29,11 @@ dashboardRouter.get(
 
     const settings = await prisma.userSettings.findUnique({
       where: { userId: req.user!.id },
-      select: { timezone: true }
+      select: { timezone: true, personalBestLpm: true }
     });
 
     const timezone = settings?.timezone ?? 'Europe/Berlin';
+    const personalBestLpm = settings?.personalBestLpm ?? null;
     const { startUtc, endUtc } = monthRangeInUtc(month, timezone);
 
     const measurements = await prisma.measurement.findMany({
@@ -71,6 +85,21 @@ dashboardRouter.get(
         avg: Number(
           ((values.beforeSum + values.afterSum) / (values.beforeCount + values.afterCount)).toFixed(1)
         )
+      }))
+      .map((point) => ({
+        date: point.date,
+        beforeInhalation: point.beforeInhalation,
+        afterInhalation: point.afterInhalation,
+        avg: point.avg,
+        beforeZone:
+          point.beforeInhalation !== null && personalBestLpm
+            ? classifyAsthmaZone(point.beforeInhalation, personalBestLpm)
+            : null,
+        afterZone:
+          point.afterInhalation !== null && personalBestLpm
+            ? classifyAsthmaZone(point.afterInhalation, personalBestLpm)
+            : null,
+        avgZone: personalBestLpm ? classifyAsthmaZone(point.avg, personalBestLpm) : null
       }));
 
     const count = measurements.length;
@@ -92,7 +121,31 @@ dashboardRouter.get(
         : null,
       avgAfterInhalation: afterValues.length
         ? Number((afterValues.reduce((sum, value) => sum + value, 0) / afterValues.length).toFixed(1))
-        : null
+        : null,
+      zone: {
+        personalBestLpm,
+        thresholds: {
+          yellowMin: personalBestLpm ? Number((personalBestLpm * 0.6).toFixed(1)) : null,
+          greenMin: personalBestLpm ? Number((personalBestLpm * 0.8).toFixed(1)) : null
+        },
+        counts: measurements.reduce(
+          (acc, item) => {
+            if (!personalBestLpm) {
+              acc.unclassified += 1;
+              return acc;
+            }
+            const zone = classifyAsthmaZone(item.peakFlowLpm, personalBestLpm);
+            acc[zone] += 1;
+            return acc;
+          },
+          {
+            green: 0,
+            yellow: 0,
+            red: 0,
+            unclassified: 0
+          }
+        )
+      }
     };
 
     res.json({ month, series, stats });

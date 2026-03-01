@@ -59,6 +59,10 @@ describe('Measurements & Dashboard API', () => {
   it('liefert Monatsstatistiken im Dashboard', async () => {
     const cookie = await registerAndGetCookie();
 
+    await request(app).patch('/api/v1/settings').set('Cookie', cookie).send({
+      personalBestLpm: 500
+    });
+
     const firstTime = DateTime.fromObject({ year: 2026, month: 3, day: 2, hour: 8, minute: 0 }).toISO();
     const secondTime = DateTime.fromObject({ year: 2026, month: 3, day: 2, hour: 19, minute: 0 }).toISO();
 
@@ -84,9 +88,19 @@ describe('Measurements & Dashboard API', () => {
     expect(response.body.stats.max).toBe(500);
     expect(response.body.stats.avgBeforeInhalation).toBe(400);
     expect(response.body.stats.avgAfterInhalation).toBe(500);
+    expect(response.body.stats.zone.personalBestLpm).toBe(500);
+    expect(response.body.stats.zone.thresholds.greenMin).toBe(400);
+    expect(response.body.stats.zone.thresholds.yellowMin).toBe(300);
+    expect(response.body.stats.zone.counts.green).toBe(2);
+    expect(response.body.stats.zone.counts.yellow).toBe(0);
+    expect(response.body.stats.zone.counts.red).toBe(0);
+    expect(response.body.stats.zone.counts.unclassified).toBe(0);
     expect(response.body.series).toHaveLength(1);
     expect(response.body.series[0].beforeInhalation).toBe(400);
     expect(response.body.series[0].afterInhalation).toBe(500);
     expect(response.body.series[0].avg).toBe(450);
+    expect(response.body.series[0].beforeZone).toBe('green');
+    expect(response.body.series[0].afterZone).toBe('green');
+    expect(response.body.series[0].avgZone).toBe('green');
   });
 });
