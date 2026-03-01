@@ -1,0 +1,13 @@
+<main class="auth-page">
+  <section class="card auth-card">
+    <h1>Fast-Login</h1>
+    @if (loading) {
+      <p class="muted">Sitzung wird vorbereitet...</p>
+    } @else if (errorMessage) {
+      <p class="error-text">{{ errorMessage }}</p>
+      <p class="switch-link">
+        <a routerLink="/auth/login">Zur regulären Anmeldung</a>
+      </p>
+    }
+  </section>
+</main>

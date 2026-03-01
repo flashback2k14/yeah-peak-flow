@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String        @map("password_hash")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  settings     UserSettings?
+  measurements Measurement[]
+
+  @@map("users")
+}
+
+model UserSettings {
+  userId          String   @id @map("user_id")
+  timezone        String   @default("Europe/Berlin")
+  personalBestLpm Int?     @map("personal_best_lpm")
+  fastLoginEnabled Boolean @default(false) @map("fast_login_enabled")
+  fastLoginToken   String? @unique @map("fast_login_token")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+model Measurement {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  measuredAt  DateTime @map("measured_at")
+  peakFlowLpm Int      @map("peak_flow_lpm")
+  inhalationTiming String @default("before_inhalation") @map("inhalation_timing")
+  note        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, measuredAt], map: "idx_measurements_user_month")
+  @@map("measurements")
+}

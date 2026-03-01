@@ -1,0 +1,31 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL:-file:/data/prod.db}
+      JWT_SECRET: ${JWT_SECRET:-replace-with-at-least-32-characters}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-12h}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost}
+      COOKIE_NAME: ${COOKIE_NAME:-pf_token}
+    volumes:
+      - sqlite_data:/data
+    expose:
+      - "3000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+
+volumes:
+  sqlite_data:

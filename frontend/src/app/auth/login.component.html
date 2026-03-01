@@ -1,0 +1,36 @@
+<main class="auth-page">
+  <section class="card auth-card">
+    <h1>Peak-Flow Monitor</h1>
+    <p class="muted">Anmeldung zur Erfassung und Auswertung deiner Peak-Flow-Werte.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label class="field">
+        <span>E-Mail</span>
+        <input type="email" formControlName="email" placeholder="name@beispiel.de" />
+      </label>
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+      <p class="error-text">Bitte eine gueltige E-Mail eingeben.</p>
+      }
+
+      <label class="field">
+        <span>Passwort</span>
+        <input type="password" formControlName="password" />
+      </label>
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+      <p class="error-text">Passwort muss mindestens 8 Zeichen lang sein.</p>
+      }
+
+      @if (errorMessage) {
+      <p class="error-text">{{ errorMessage }}</p>
+      }
+
+      <button class="btn btn-primary" type="submit" [disabled]="loading">
+        {{ loading ? 'Anmeldung...' : 'Anmelden' }}
+      </button>
+    </form>
+
+    <p class="switch-link">
+      Noch kein Konto? <a routerLink="/auth/register">Jetzt registrieren</a>
+    </p>
+  </section>
+</main>

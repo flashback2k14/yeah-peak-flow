@@ -1,0 +1,71 @@
+<section class="dashboard-grid">
+  <article class="card filters">
+    <header class="calendar-toolbar">
+      <div class="month-controls">
+        <button class="btn btn-outline" type="button" (click)="previousMonth()">
+          &lt;
+        </button>
+        <h2>{{ monthLabel }}</h2>
+        <button class="btn btn-outline" type="button" (click)="nextMonth()">
+          &gt;
+        </button>
+      </div>
+
+      <div class="month-jump">
+        <button class="btn btn-outline" type="button" (click)="goToCurrentMonth()">
+          Heute
+        </button>
+      </div>
+    </header>
+
+    <div>
+      <p class="muted">Durchschnittswerte pro Tag und Monatskennzahlen.</p>
+    </div>
+  </article>
+
+  <article class="card stats" *ngIf="data as dashboardData">
+    <div class="stat">
+      <span class="muted">Messungen</span>
+      <strong>{{ dashboardData.stats.count }}</strong>
+    </div>
+    <div class="stat">
+      <span class="muted">Durchschnitt</span>
+      <strong>{{ dashboardData.stats.avg ?? '-' }} L/min</strong>
+    </div>
+    <div class="stat">
+      <span class="muted">Minimum</span>
+      <strong>{{ dashboardData.stats.min ?? '-' }} L/min</strong>
+    </div>
+    <div class="stat">
+      <span class="muted">Maximum</span>
+      <strong>{{ dashboardData.stats.max ?? '-' }} L/min</strong>
+    </div>
+    <div class="stat">
+      <span class="muted">Ø vor Inhalation</span>
+      <strong>{{ dashboardData.stats.avgBeforeInhalation ?? '-' }} L/min</strong>
+    </div>
+    <div class="stat">
+      <span class="muted">Ø nach Inhalation</span>
+      <strong>{{ dashboardData.stats.avgAfterInhalation ?? '-' }} L/min</strong>
+    </div>
+  </article>
+
+  <article class="card chart-card">
+    @if (loading) {
+    <p class="muted">Diagramm wird geladen...</p>
+    } @else if (errorMessage) {
+    <p class="error-text">{{ errorMessage }}</p>
+    } @else if (!data || data.series.length === 0) {
+    <p class="muted">Keine Daten fuer diesen Monat vorhanden.</p>
+    } @else {
+    <div class="chart-wrap">
+      <canvas
+        baseChart
+        [data]="lineChartData"
+        [options]="lineChartOptions"
+        [type]="'line'"
+      ></canvas>
+    </div>
+    }
+  </article>
+</section>

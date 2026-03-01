@@ -1,0 +1,293 @@
+<section class="entry-grid">
+  <article class="card calendar-card">
+    <header class="calendar-toolbar">
+      <div class="month-controls">
+        <button class="btn btn-outline" type="button" (click)="previousMonth()">
+          &lt;
+        </button>
+        <h2>{{ monthLabel }}</h2>
+        <button class="btn btn-outline" type="button" (click)="nextMonth()">
+          &gt;
+        </button>
+      </div>
+
+      <div class="month-jump">
+        <!-- <input type="month" [value]="monthInputValue" (change)="onMonthInputChange($any($event.target).value)" /> -->
+        <button
+          class="btn btn-outline"
+          type="button"
+          (click)="goToCurrentMonth()"
+        >
+          Heute
+        </button>
+      </div>
+    </header>
+
+    <div class="weekday-row">
+      <span *ngFor="let label of weekdayLabels">{{ label }}</span>
+    </div>
+
+    <div class="calendar-stage" [attr.aria-busy]="loading">
+      <div class="calendar-grid" [class.dimmed]="showCalendarStatus">
+        <ng-container *ngFor="let row of calendarRows">
+          <button
+            *ngFor="let day of row; trackBy: trackByDate"
+            type="button"
+            class="day-cell"
+            [class.muted-day]="!day.inMonth"
+            [class.today]="day.isToday"
+            [class.selected]="day.isSelected"
+            (click)="selectDay(day)"
+          >
+            <span>{{ day.dayNumber }}</span>
+            <small *ngIf="day.measurementCount > 0">{{
+              day.measurementCount
+            }}</small>
+          </button>
+        </ng-container>
+      </div>
+
+      @if (showCalendarStatus) {
+        <div class="calendar-status">
+          <span class="spinner" aria-hidden="true"></span>
+          <span>{{ calendarStatusMessage }}</span>
+        </div>
+      }
+    </div>
+    @if (calendarErrorMessage && !loading) {
+      <p class="calendar-error error-text">{{ calendarErrorMessage }}</p>
+    }
+  </article>
+
+  <article class="card day-panel">
+    <header>
+      <h2>Messungen am {{ selectedDayLabel }}</h2>
+      <p class="muted">Beliebig viele Messungen pro Tag erfassen.</p>
+    </header>
+
+    <form
+      class="create-form"
+      [formGroup]="createForm"
+      (ngSubmit)="createMeasurement()"
+    >
+      <label class="field">
+        <span>Uhrzeit</span>
+        <input type="time" formControlName="time" />
+      </label>
+      @if (
+        createForm.controls.time.touched && createForm.controls.time.invalid
+      ) {
+        <p class="error-text">Bitte eine gueltige Uhrzeit eingeben.</p>
+      }
+
+      <label class="field">
+        <span>Peak-Flow (L/min)</span>
+        <input
+          type="number"
+          formControlName="peakFlowLpm"
+          min="50"
+          max="900"
+          step="1"
+        />
+      </label>
+      @if (
+        createForm.controls.peakFlowLpm.touched &&
+        createForm.controls.peakFlowLpm.invalid
+      ) {
+        @if (
+          createForm.controls.peakFlowLpm.errors?.["min"] ||
+          createForm.controls.peakFlowLpm.errors?.["max"]
+        ) {
+          <p class="error-text">
+            Der Peak-Flow muss zwischen 50 und 900 L/min liegen.
+          </p>
+        } @else {
+          <p class="error-text">
+            Bitte einen gueltigen Peak-Flow-Wert eingeben.
+          </p>
+        }
+      }
+
+      <label class="field">
+        <span>Messzeitpunkt</span>
+        <select formControlName="inhalationTiming">
+          <option value="before_inhalation">Vor der Inhalation</option>
+          <option value="after_inhalation">Nach der Inhalation</option>
+        </select>
+      </label>
+      @if (
+        createForm.controls.inhalationTiming.touched &&
+        createForm.controls.inhalationTiming.invalid
+      ) {
+        <p class="error-text">Bitte den Messzeitpunkt auswaehlen.</p>
+      }
+
+      <div class="note-section">
+        <button
+          class="btn btn-outline note-toggle"
+          type="button"
+          (click)="toggleCreateNoteField()"
+          [attr.aria-expanded]="createNoteExpanded"
+          aria-controls="create-note-field"
+        >
+          {{
+            createNoteExpanded
+              ? "Notizfeld einklappen"
+              : "Notizfeld ausklappen (optional)"
+          }}
+        </button>
+
+        @if (createNoteExpanded) {
+          <label class="field" id="create-note-field">
+            <span>Notiz (optional)</span>
+            <textarea
+              formControlName="note"
+              maxlength="500"
+              placeholder="z. B. nach Inhalation"
+            ></textarea>
+          </label>
+          @if (
+            createForm.controls.note.touched &&
+            createForm.controls.note.errors?.["maxlength"]
+          ) {
+            <p class="error-text">
+              Die Notiz darf maximal 500 Zeichen enthalten.
+            </p>
+          }
+        }
+      </div>
+
+      <button
+        class="btn btn-primary"
+        type="submit"
+        [disabled]="creating || loading || createForm.invalid"
+      >
+        {{ creating ? "Speichert..." : "Messung speichern" }}
+      </button>
+    </form>
+
+    @if (hasActionMessage) {
+      <p
+        class="action-message"
+        [class.success]="actionMessageType === 'success'"
+        [class.error]="actionMessageType === 'error'"
+      >
+        {{ actionMessage }}
+      </p>
+    }
+
+    @if (selectedDayMeasurements.length === 0) {
+      <p class="muted">Keine Messungen fuer diesen Tag vorhanden.</p>
+    } @else {
+      <ul class="measurement-list">
+        <li
+          class="measurement-item"
+          *ngFor="
+            let item of selectedDayMeasurements;
+            trackBy: trackByMeasurement
+          "
+        >
+          @if (editingId === item.id) {
+            <form
+              class="edit-form"
+              [formGroup]="editForm"
+              (ngSubmit)="saveEdit(item)"
+            >
+              <input type="time" formControlName="time" />
+              <input
+                type="number"
+                formControlName="peakFlowLpm"
+                min="50"
+                max="900"
+                step="1"
+              />
+              <select formControlName="inhalationTiming">
+                <option value="before_inhalation">Vor der Inhalation</option>
+                <option value="after_inhalation">Nach der Inhalation</option>
+              </select>
+              <input
+                type="text"
+                formControlName="note"
+                maxlength="500"
+                placeholder="Notiz"
+              />
+              <div class="inline-errors">
+                @if (
+                  editForm.controls.time.touched &&
+                  editForm.controls.time.invalid
+                ) {
+                  <p class="error-text">
+                    Bitte eine gueltige Uhrzeit eingeben.
+                  </p>
+                }
+                @if (
+                  editForm.controls.peakFlowLpm.touched &&
+                  editForm.controls.peakFlowLpm.invalid
+                ) {
+                  <p class="error-text">
+                    Der Peak-Flow muss zwischen 50 und 900 L/min liegen.
+                  </p>
+                }
+                @if (
+                  editForm.controls.note.touched &&
+                  editForm.controls.note.errors?.["maxlength"]
+                ) {
+                  <p class="error-text">
+                    Die Notiz darf maximal 500 Zeichen enthalten.
+                  </p>
+                }
+              </div>
+              <div class="actions">
+                <button
+                  class="btn btn-primary"
+                  type="submit"
+                  [disabled]="updating || editForm.invalid"
+                >
+                  {{ updating ? "..." : "Speichern" }}
+                </button>
+                <button
+                  class="btn btn-outline"
+                  type="button"
+                  (click)="cancelEdit()"
+                >
+                  Abbrechen
+                </button>
+              </div>
+            </form>
+          } @else {
+            <div class="measurement-data">
+              <strong>{{ item.peakFlowLpm }} L/min</strong>
+              <span
+                class="timing-chip"
+                [class.timing-chip-after]="item.inhalationTiming === 'after_inhalation'"
+              >{{
+                inhalationTimingLabel(item.inhalationTiming)
+              }}</span>
+              <span class="muted"
+                >{{ item.measuredAt | date: "HH:mm" }} Uhr</span
+              >
+              <p *ngIf="item.note" class="muted">{{ item.note }}</p>
+            </div>
+            <div class="actions">
+              <button
+                class="btn btn-outline"
+                type="button"
+                (click)="startEdit(item)"
+              >
+                Bearbeiten
+              </button>
+              <button
+                class="btn btn-danger"
+                type="button"
+                (click)="deleteMeasurement(item)"
+                [disabled]="deletingId === item.id"
+              >
+                {{ deletingId === item.id ? "Loescht..." : "Loeschen" }}
+              </button>
+            </div>
+          }
+        </li>
+      </ul>
+    }
+  </article>
+</section>

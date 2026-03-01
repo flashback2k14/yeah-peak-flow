@@ -1,0 +1,35 @@
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.auth-card {
+  width: min(440px, 100%);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .btn {
+    margin-top: 0.4rem;
+    width: 100%;
+  }
+}
+
+.switch-link {
+  margin: 0;
+  font-size: 0.95rem;
+
+  a {
+    color: var(--accent-strong);
+    font-weight: 700;
+  }
+}

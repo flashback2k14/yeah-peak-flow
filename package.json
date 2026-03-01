@@ -1,0 +1,23 @@
+{
+  "name": "peak-flow-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "engines": {
+    "node": "^22.12.0",
+    "npm": ">=10"
+  },
+  "volta": {
+    "node": "22.22.0"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace backend & npm run start --workspace frontend",
+    "dev:backend": "npm run dev --workspace backend",
+    "dev:frontend": "npm run start --workspace frontend",
+    "build": "npm run build --workspace backend && npm run build --workspace frontend",
+    "test": "npm run test --workspace backend && npm run test --workspace frontend"
+  }
+}

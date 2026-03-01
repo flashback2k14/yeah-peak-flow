@@ -1,0 +1,36 @@
+<main class="auth-page">
+  <section class="card auth-card">
+    <h1>Neues Konto erstellen</h1>
+    <p class="muted">Registriere dich mit E-Mail und Passwort.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label class="field">
+        <span>E-Mail</span>
+        <input type="email" formControlName="email" placeholder="name@beispiel.de" />
+      </label>
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+      <p class="error-text">Bitte eine gueltige E-Mail eingeben.</p>
+      }
+
+      <label class="field">
+        <span>Passwort</span>
+        <input type="password" formControlName="password" />
+      </label>
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+      <p class="error-text">Mind. 8 Zeichen, 1 Grossbuchstabe, 1 Kleinbuchstabe, 1 Zahl.</p>
+      }
+
+      @if (errorMessage) {
+      <p class="error-text">{{ errorMessage }}</p>
+      }
+
+      <button class="btn btn-primary" type="submit" [disabled]="loading">
+        {{ loading ? 'Registrierung...' : 'Registrieren' }}
+      </button>
+    </form>
+
+    <p class="switch-link">
+      Bereits registriert? <a routerLink="/auth/login">Zum Login</a>
+    </p>
+  </section>
+</main>

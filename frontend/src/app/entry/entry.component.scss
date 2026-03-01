@@ -1,0 +1,260 @@
+.entry-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 1rem;
+}
+
+.calendar-card,
+.day-panel {
+  padding: 1rem;
+}
+
+.calendar-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.month-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  h2 {
+    min-width: 190px;
+    text-transform: capitalize;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+}
+
+.month-jump {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.3rem;
+  margin-bottom: 0.35rem;
+
+  span {
+    text-align: center;
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+.calendar-stage {
+  position: relative;
+}
+
+.calendar-grid.dimmed {
+  opacity: 0.45;
+}
+
+.calendar-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1rem;
+  text-align: center;
+  color: var(--accent-strong);
+  font-weight: 700;
+  background: var(--overlay-bg);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.calendar-error {
+  margin: 0.75rem 0 0;
+}
+
+.action-message {
+  margin: 0;
+  font-weight: 700;
+}
+
+.action-message.success {
+  color: var(--ok);
+}
+
+.action-message.error {
+  color: var(--danger);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(23, 126, 137, 0.25);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.day-cell {
+  border: 1px solid var(--surface-border);
+  background: var(--surface-strong);
+  border-radius: 10px;
+  min-height: 74px;
+  padding: 0.4rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+
+  small {
+    align-self: flex-start;
+    background: rgba(23, 126, 137, 0.14);
+    color: var(--accent-strong);
+    border-radius: 999px;
+    padding: 0.05rem 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+}
+
+.day-cell.muted-day {
+  opacity: 0.48;
+}
+
+.day-cell.today {
+  border-color: var(--accent);
+}
+
+.day-cell.selected {
+  background: rgba(23, 126, 137, 0.12);
+  border-color: var(--accent-strong);
+}
+
+.day-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.create-form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.note-section {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.note-toggle {
+  justify-self: start;
+}
+
+.measurement-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.measurement-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 0.8rem;
+  background: var(--surface-strong);
+}
+
+.measurement-data {
+  display: grid;
+  gap: 0.2rem;
+
+  p {
+    margin: 0;
+  }
+}
+
+.timing-chip {
+  width: fit-content;
+  padding: 0.08rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(29, 78, 216, 0.14);
+  color: #1d4ed8;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.timing-chip-after {
+  background: rgba(220, 38, 38, 0.16);
+  color: #dc2626;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.edit-form {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 130px 160px 190px 1fr;
+  gap: 0.4rem;
+  align-items: center;
+
+  input,
+  select {
+    width: 100%;
+    border: 1px solid var(--input-border);
+    background: var(--input-bg);
+    color: var(--text-main);
+    border-radius: 8px;
+    padding: 0.5rem 0.55rem;
+  }
+}
+
+.inline-errors {
+  grid-column: 1 / -1;
+
+  p {
+    margin: 0.2rem 0 0;
+  }
+}
+
+@media (max-width: 1100px) {
+  .entry-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .edit-form {
+    grid-template-columns: 1fr;
+  }
+
+  .measurement-item {
+    flex-direction: column;
+  }
+}

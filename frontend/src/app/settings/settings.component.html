@@ -1,0 +1,156 @@
+<section class="settings-grid">
+  <article class="card settings-form-card">
+    <header>
+      <h2>Benutzereinstellungen</h2>
+      <p class="muted">Persoenliche Werte und Fast-Login verwalten.</p>
+    </header>
+
+    @if (loading) {
+      <p class="muted">Einstellungen werden geladen...</p>
+    } @else {
+      <form class="settings-form" [formGroup]="form" (ngSubmit)="saveSettings()">
+        <div class="theme-setting">
+          <div>
+            <span class="setting-label">Design</span>
+            <p class="muted">Darstellung der Anwendung umschalten.</p>
+          </div>
+          <button
+            class="btn btn-outline theme-toggle-btn"
+            type="button"
+            (click)="toggleTheme()"
+            [attr.aria-label]="isDarkTheme() ? 'Helles Theme aktivieren' : 'Dunkles Theme aktivieren'"
+            [attr.title]="isDarkTheme() ? 'Helles Theme aktivieren' : 'Dunkles Theme aktivieren'"
+          >
+            @if (isDarkTheme()) {
+              <svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="4"></circle>
+                <path d="M12 2v2"></path>
+                <path d="M12 20v2"></path>
+                <path d="M4.93 4.93l1.41 1.41"></path>
+                <path d="M17.66 17.66l1.41 1.41"></path>
+                <path d="M2 12h2"></path>
+                <path d="M20 12h2"></path>
+                <path d="M4.93 19.07l1.41-1.41"></path>
+                <path d="M17.66 6.34l1.41-1.41"></path>
+              </svg>
+            } @else {
+              <svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path>
+              </svg>
+            }
+          </button>
+        </div>
+
+        <label class="field">
+          <span>Zeitzone</span>
+          <input type="text" formControlName="timezone" placeholder="Europe/Berlin" />
+        </label>
+        @if (form.controls.timezone.touched && form.controls.timezone.invalid) {
+          <p class="error-text">Bitte eine gueltige Zeitzone eingeben (z. B. Europe/Berlin).</p>
+        }
+
+        <label class="field">
+          <span>Persoenlicher Bestwert (L/min)</span>
+          <input type="number" formControlName="personalBestLpm" min="50" max="900" step="1" />
+        </label>
+        @if (form.controls.personalBestLpm.touched && form.controls.personalBestLpm.invalid) {
+          <p class="error-text">Wert muss zwischen 50 und 900 L/min liegen.</p>
+        }
+
+        <label class="toggle-row">
+          <input type="checkbox" formControlName="fastLoginEnabled" />
+          <span>Fast-Login aktivieren (Login-Maske wird mit Token-Link uebersprungen)</span>
+        </label>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="submit" [disabled]="saving || form.invalid">
+            {{ saving ? 'Speichert...' : 'Einstellungen speichern' }}
+          </button>
+        </div>
+      </form>
+    }
+
+    @if (hasStatusMessage) {
+      <p class="status-message" [class.success]="statusType === 'success'" [class.error]="statusType === 'error'">
+        {{ statusMessage }}
+      </p>
+    }
+  </article>
+
+  <article class="card fast-login-card">
+    <header>
+      <h2>Fast-Login</h2>
+      <p class="muted">Direkter Login-Link inklusive QR-Code fuer dieses Konto.</p>
+    </header>
+
+    @if (!fastLoginEnabled) {
+      <p class="muted">Fast-Login ist aktuell deaktiviert.</p>
+    } @else if (!fastLoginUrl) {
+      <p class="muted">Fast-Login-Link wird erzeugt. Speichere die Einstellungen oder generiere ein neues Token.</p>
+    } @else {
+      <label class="field">
+        <span>Fast-Login-Link</span>
+        <input type="text" [value]="fastLoginUrl" readonly />
+      </label>
+
+      <div class="actions">
+        <button class="btn btn-outline" type="button" (click)="copyFastLoginLink()">Link kopieren</button>
+        <button class="btn btn-outline" type="button" [disabled]="regeneratingToken" (click)="regenerateFastLoginToken()">
+          {{ regeneratingToken ? 'Generiert...' : 'Token neu generieren' }}
+        </button>
+      </div>
+
+      <a class="fast-login-link" [href]="fastLoginUrl" target="_blank" rel="noopener noreferrer">Fast-Login-Link oeffnen</a>
+
+      @if (qrCodeDataUrl) {
+        <div class="qr-wrap">
+          <img [src]="qrCodeDataUrl" alt="QR-Code fuer Fast-Login-Link" />
+        </div>
+      }
+    }
+  </article>
+
+  <article class="card pdf-export-card">
+    <header>
+      <h2>PDF-Export</h2>
+      <p class="muted">Monate auswaehlen und Messdaten als PDF exportieren.</p>
+    </header>
+
+    <div class="export-header-row">
+      <span class="muted">{{ selectedExportMonthCount }} Monat(e) ausgewaehlt</span>
+      <button
+        class="btn btn-primary"
+        type="button"
+        (click)="exportSelectedMonthsPdf()"
+        [disabled]="exportingPdf || exportMonthsLoading || availableExportMonths.length === 0"
+      >
+        {{ exportingPdf ? 'Export laeuft...' : 'Als PDF exportieren' }}
+      </button>
+    </div>
+
+    @if (exportMonthsLoading) {
+      <p class="muted">Verfuegbare Monate werden geladen...</p>
+    } @else if (availableExportMonths.length === 0) {
+      <p class="muted">Keine Monate mit Daten verfuegbar.</p>
+    } @else {
+      <div class="export-months">
+        @for (month of availableExportMonths; track month) {
+          <label class="export-month-option">
+            <input
+              type="checkbox"
+              [checked]="isExportMonthSelected(month)"
+              (change)="toggleExportMonth(month, $event)"
+            />
+            <span>{{ formatExportMonth(month) }}</span>
+          </label>
+        }
+      </div>
+    }
+
+    @if (hasExportMessage) {
+      <p class="export-message" [class.success]="exportMessageType === 'success'" [class.error]="exportMessageType === 'error'">
+        {{ exportMessage }}
+      </p>
+    }
+  </article>
+</section>
