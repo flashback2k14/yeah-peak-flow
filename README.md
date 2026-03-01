@@ -3,24 +3,44 @@
 Monorepo fuer eine Webanwendung zur Erfassung und Auswertung von Peak-Flow-Werten bei Asthma.
 
 ## Inhalt
-- `frontend/`: Angular-App (Login/Registrierung, Kalender-Erfassung, Dashboard-Diagramm)
-- `backend/`: Node.js API (Express, Prisma, SQLite, JWT-Cookie-Auth)
 
-## Features (MVP)
+- `frontend/`: Angular 21 App (Login/Registrierung, Kalender-Erfassung, Dashboard, Settings, PDF-Export)
+- `backend/`: Node.js API (Express, Prisma, SQLite, JWT-Cookie-Auth, PDF-Generator)
+
+## Features
+
 - Registrierung und Login per E-Mail + Passwort
+- Fast-Login per benutzerspezifischem Token (`/auth/fast-login?token=...`)
+- QR-Code fuer Fast-Login-Link in den Einstellungen
 - Sichere Authentifizierung via JWT im HttpOnly-Cookie
 - Monatlich getrennte Erfassung in Kalenderansicht
-- Beliebig viele Messungen pro Tag (Wert, Uhrzeit, Notiz)
-- Dashboard mit Monats-Trendlinie und Kennzahlen (Anzahl, Min, Max, Durchschnitt)
-- Einstellungen inkl. Fast-Login pro Benutzer (Link + QR-Code)
+- Beliebig viele Messungen pro Tag (Wert, Uhrzeit, Messzeitpunkt vor/nach Inhalation, optionale Notiz)
+- Einklappbares Notizfeld in der Erfassungsmaske (standardmaessig eingeklappt)
+- Dashboard mit:
+  - Monats-Trendlinie (vor Inhalation / nach Inhalation / Durchschnitt)
+  - Zonen-Hintergrundflaechen (gruen/gelb/rot) basierend auf persoenlichem Bestwert
+  - Kennzahlen (Anzahl, Min, Max, Durchschnitt, vor/nach Inhalation)
+  - Zonen-Kacheln (Anzahl gruen/gelb/rot)
+- Vollstaendige Asthma-Zonenlogik (60%/80%-Schwellen vom persoenlichen Bestwert)
+- Einstellungen:
+  - Zeitzone
+  - persoenlicher Bestwert (`personalBestLpm`)
+  - Theme-Umschaltung (Dark Theme als Default)
+  - Fast-Login aktivieren/deaktivieren, Token neu generieren
+  - PDF-Export mit Monatsauswahl (nur Monate mit vorhandenen Daten)
+- PDF-Export:
+  - mehrmonatiger Export
+  - Tageszeilen mit Spalten fuer vor/nach Inhalation und Notizen
+  - Diagramm am Ende des PDFs
 - Persistenz in SQLite
-- Vorbereitung fuer Asthma-Zonenlogik (`personal_best_lpm` in Settings)
 
 ## Voraussetzungen
+
 - Node.js 22.x (empfohlen: `22.22.0`)
 - npm 10+
 
 ## Installation
+
 Im Repository-Root:
 
 ```bash
@@ -42,6 +62,7 @@ nvm use
 ```
 
 ## Umgebungsvariablen (Backend)
+
 `backend/.env` anlegen, Beispiel:
 
 ```env
@@ -55,18 +76,22 @@ COOKIE_NAME=pf_token
 ```
 
 ## Datenbank initialisieren
+
 ```bash
 npm run prisma:generate --workspace backend
 npm run prisma:push --workspace backend
 ```
 
 ## Entwicklung starten
+
 Terminal 1:
+
 ```bash
 npm run dev --workspace backend
 ```
 
 Terminal 2:
+
 ```bash
 npm run start --workspace frontend
 ```
@@ -75,18 +100,34 @@ npm run start --workspace frontend
 - Backend: `http://localhost:3000`
 - Healthcheck: `GET http://localhost:3000/api/v1/health`
 
+Alternativ beide zusammen:
+
+```bash
+npm run dev
+```
+
 ## Tests
+
 Backend:
+
 ```bash
 npm run test --workspace backend
 ```
 
 Frontend:
+
 ```bash
 npm run test --workspace frontend
 ```
 
+Gesamt (Backend + Frontend):
+
+```bash
+npm test
+```
+
 ## API (Kurzueberblick)
+
 - `POST /api/v1/auth/register`
 - `POST /api/v1/auth/login`
 - `POST /api/v1/auth/fast-login`
@@ -99,9 +140,25 @@ npm run test --workspace frontend
 - `GET /api/v1/dashboard/monthly?month=YYYY-MM`
 - `GET /api/v1/settings`
 - `PATCH /api/v1/settings`
+- `GET /api/v1/exports/available-months`
+- `GET /api/v1/exports/measurements.pdf?months=YYYY-MM,YYYY-MM`
+
+### Asthma-Zonen (implementiert)
+
+- Grundlage: `personalBestLpm` (aus Settings)
+- Zonen:
+  - `green`: `>= 80%` von `personalBestLpm`
+  - `yellow`: `>= 60%` und `< 80%`
+  - `red`: `< 60%`
+- Dashboard liefert:
+  - Zonenklassifikation je Tagespunkt (`beforeZone`, `afterZone`, `avgZone`)
+  - Zonenstatistik (`green`, `yellow`, `red`, `unclassified`)
+  - berechnete Schwellen (`greenMin`, `yellowMin`)
 
 ## Docker Deployment
+
 Compose startet:
+
 - `frontend` als Nginx auf Port `80` (anpassbar via `FRONTEND_PORT`)
 - `backend` intern auf Port `3000`
 - persistente SQLite-Daten in Docker-Volume `sqlite_data`
@@ -119,8 +176,10 @@ docker compose up --build -d
 ```
 
 Optional:
+
 - anderer Frontend-Port: `FRONTEND_PORT=8080 docker compose up --build -d`
 - explizite DB-Datei: `DATABASE_URL=file:/data/prod.db`
 
 Hinweis:
+
 - Bei `NODE_ENV=production` setzt der Backend-Cookie `Secure=true`. Dafuer sollte die App ueber HTTPS bereitgestellt werden.
