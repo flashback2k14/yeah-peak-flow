@@ -64,11 +64,15 @@ nvm use
 NODE_ENV=development
 PORT=3000
 DATABASE_URL=file:./prisma/dev.db
-JWT_SECRET=replace-with-long-random-secret
+JWT_SECRET=replace-with-at-least-32-characters
 JWT_EXPIRES_IN=12h
 FRONTEND_ORIGIN=http://localhost:4200
 COOKIE_NAME=pf_token
 ```
+
+Wichtig:
+- `JWT_SECRET` ist Pflicht und muss mindestens 32 Zeichen lang sein.
+- Platzhalterwerte wie `replace-with-at-least-32-characters` werden beim Start explizit abgewiesen.
 
 ## Datenbank initialisieren
 ```bash
@@ -147,11 +151,13 @@ Compose startet:
 - `backend` intern auf Port `3000`
 - persistente SQLite-Daten in Docker-Volume `sqlite_data`
 
-Vor dem Start ein sicheres JWT-Secret setzen (mind. 32 Zeichen):
+Vor dem Start ein sicheres JWT-Secret setzen (mind. 32 Zeichen, kein Platzhalter):
 
 ```bash
-export JWT_SECRET='DEIN_SEHR_LANGES_RANDOM_SECRET_MIT_MIN_32_ZEICHEN'
+export JWT_SECRET="$(openssl rand -base64 48)"
 ```
+
+Ohne `JWT_SECRET` (oder mit Platzhalter) bricht der Start absichtlich ab.
 
 Start:
 
