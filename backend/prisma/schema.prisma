@@ -24,6 +24,7 @@ model UserSettings {
   userId          String   @id @map("user_id")
   timezone        String   @default("Europe/Berlin")
   personalBestLpm Int?     @map("personal_best_lpm")
+  medicationManagementUrl String? @map("medication_management_url")
   fastLoginEnabled Boolean @default(false) @map("fast_login_enabled")
   fastLoginToken   String? @unique @map("fast_login_token")
   createdAt       DateTime @default(now()) @map("created_at")

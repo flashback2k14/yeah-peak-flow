@@ -3,12 +3,10 @@
 Monorepo fuer eine Webanwendung zur Erfassung und Auswertung von Peak-Flow-Werten bei Asthma.
 
 ## Inhalt
-
 - `frontend/`: Angular 21 App (Login/Registrierung, Kalender-Erfassung, Dashboard, Settings, PDF-Export)
 - `backend/`: Node.js API (Express, Prisma, SQLite, JWT-Cookie-Auth, PDF-Generator)
 
 ## Features
-
 - Registrierung und Login per E-Mail + Passwort
 - Fast-Login per benutzerspezifischem Token (`/auth/fast-login?token=...`)
 - QR-Code fuer Fast-Login-Link in den Einstellungen
@@ -35,12 +33,10 @@ Monorepo fuer eine Webanwendung zur Erfassung und Auswertung von Peak-Flow-Werte
 - Persistenz in SQLite
 
 ## Voraussetzungen
-
 - Node.js 22.x (empfohlen: `22.22.0`)
 - npm 10+
 
 ## Installation
-
 Im Repository-Root:
 
 ```bash
@@ -62,7 +58,6 @@ nvm use
 ```
 
 ## Umgebungsvariablen (Backend)
-
 `backend/.env` anlegen, Beispiel:
 
 ```env
@@ -76,22 +71,18 @@ COOKIE_NAME=pf_token
 ```
 
 ## Datenbank initialisieren
-
 ```bash
 npm run prisma:generate --workspace backend
 npm run prisma:push --workspace backend
 ```
 
 ## Entwicklung starten
-
 Terminal 1:
-
 ```bash
 npm run dev --workspace backend
 ```
 
 Terminal 2:
-
 ```bash
 npm run start --workspace frontend
 ```
@@ -107,15 +98,12 @@ npm run dev
 ```
 
 ## Tests
-
 Backend:
-
 ```bash
 npm run test --workspace backend
 ```
 
 Frontend:
-
 ```bash
 npm run test --workspace frontend
 ```
@@ -127,7 +115,6 @@ npm test
 ```
 
 ## API (Kurzueberblick)
-
 - `POST /api/v1/auth/register`
 - `POST /api/v1/auth/login`
 - `POST /api/v1/auth/fast-login`
@@ -144,7 +131,6 @@ npm test
 - `GET /api/v1/exports/measurements.pdf?months=YYYY-MM,YYYY-MM`
 
 ### Asthma-Zonen (implementiert)
-
 - Grundlage: `personalBestLpm` (aus Settings)
 - Zonen:
   - `green`: `>= 80%` von `personalBestLpm`
@@ -156,9 +142,7 @@ npm test
   - berechnete Schwellen (`greenMin`, `yellowMin`)
 
 ## Docker Deployment
-
 Compose startet:
-
 - `frontend` als Nginx auf Port `80` (anpassbar via `FRONTEND_PORT`)
 - `backend` intern auf Port `3000`
 - persistente SQLite-Daten in Docker-Volume `sqlite_data`
@@ -176,10 +160,8 @@ docker compose up --build -d
 ```
 
 Optional:
-
 - anderer Frontend-Port: `FRONTEND_PORT=8080 docker compose up --build -d`
 - explizite DB-Datei: `DATABASE_URL=file:/data/prod.db`
 
 Hinweis:
-
 - Bei `NODE_ENV=production` setzt der Backend-Cookie `Secure=true`. Dafuer sollte die App ueber HTTPS bereitgestellt werden.

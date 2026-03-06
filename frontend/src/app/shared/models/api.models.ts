@@ -63,6 +63,7 @@ export interface DashboardMonthlyResponse {
 export interface UserSettings {
   timezone: string;
   personalBestLpm: number | null;
+  medicationManagementUrl: string | null;
   fastLoginEnabled: boolean;
   fastLoginUrl: string | null;
 }

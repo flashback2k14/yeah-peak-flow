@@ -57,6 +57,22 @@
           <p class="error-text">Wert muss zwischen 50 und 900 L/min liegen.</p>
         }
 
+        <label class="field">
+          <span>Link zur Medikamentenverwaltung</span>
+          <input
+            type="url"
+            formControlName="medicationManagementUrl"
+            placeholder="https://beispiel.de/medikamente"
+          />
+        </label>
+        @if (form.controls.medicationManagementUrl.touched && form.controls.medicationManagementUrl.invalid) {
+          @if (form.controls.medicationManagementUrl.errors?.["maxlength"]) {
+            <p class="error-text">Der Link darf maximal 2048 Zeichen enthalten.</p>
+          } @else {
+            <p class="error-text">Bitte eine gueltige URL mit http:// oder https:// eingeben.</p>
+          }
+        }
+
         <label class="toggle-row">
           <input type="checkbox" formControlName="fastLoginEnabled" />
           <span>Fast-Login aktivieren (Login-Maske wird mit Token-Link uebersprungen)</span>

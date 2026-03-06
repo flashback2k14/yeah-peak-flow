@@ -48,6 +48,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   readonly form = this.fb.group({
     timezone: ['Europe/Berlin', [Validators.required]],
     personalBestLpm: [null as number | null, [Validators.min(50), Validators.max(900)]],
+    medicationManagementUrl: ['', [Validators.maxLength(2048), Validators.pattern(/^(https?:\/\/.+)?$/i)]],
     fastLoginEnabled: [false, [Validators.required]]
   });
 
@@ -91,6 +92,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     }
 
     const value = this.form.getRawValue();
+    const medicationManagementUrl = value.medicationManagementUrl?.trim() || null;
     this.saving = true;
     this.clearStatus();
     this.requestViewRefresh();
@@ -99,6 +101,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       .updateSettings({
         timezone: value.timezone?.trim() || 'Europe/Berlin',
         personalBestLpm: value.personalBestLpm,
+        medicationManagementUrl,
         fastLoginEnabled: value.fastLoginEnabled ?? false
       })
       .pipe(
@@ -297,6 +300,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private applySettings(settings: {
     timezone: string;
     personalBestLpm: number | null;
+    medicationManagementUrl: string | null;
     fastLoginEnabled: boolean;
     fastLoginUrl: string | null;
   }): void {
@@ -304,6 +308,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       {
         timezone: settings.timezone,
         personalBestLpm: settings.personalBestLpm,
+        medicationManagementUrl: settings.medicationManagementUrl ?? '',
         fastLoginEnabled: settings.fastLoginEnabled
       },
       { emitEvent: false }

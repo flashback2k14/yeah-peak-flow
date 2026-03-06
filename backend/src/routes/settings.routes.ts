@@ -19,6 +19,7 @@ const buildFastLoginUrl = (token: string): string => {
 const toSettingsResponse = (settings: {
   timezone: string;
   personalBestLpm: number | null;
+  medicationManagementUrl: string | null;
   fastLoginEnabled: boolean;
   fastLoginToken: string | null;
 }) => {
@@ -27,6 +28,7 @@ const toSettingsResponse = (settings: {
   return {
     timezone: settings.timezone,
     personalBestLpm: settings.personalBestLpm,
+    medicationManagementUrl: settings.medicationManagementUrl,
     fastLoginEnabled: settings.fastLoginEnabled,
     fastLoginUrl
   };
@@ -45,6 +47,7 @@ settingsRouter.get(
       select: {
         timezone: true,
         personalBestLpm: true,
+        medicationManagementUrl: true,
         fastLoginEnabled: true,
         fastLoginToken: true
       }
@@ -65,16 +68,19 @@ settingsRouter.patch(
         userId: req.user!.id,
         timezone: payload.timezone ?? 'Europe/Berlin',
         personalBestLpm: payload.personalBestLpm ?? null,
+        medicationManagementUrl: payload.medicationManagementUrl ?? null,
         fastLoginEnabled: false,
         fastLoginToken: null
       },
       update: {
         timezone: payload.timezone,
-        personalBestLpm: payload.personalBestLpm
+        personalBestLpm: payload.personalBestLpm,
+        medicationManagementUrl: payload.medicationManagementUrl
       },
       select: {
         timezone: true,
         personalBestLpm: true,
+        medicationManagementUrl: true,
         fastLoginEnabled: true,
         fastLoginToken: true
       }
@@ -94,12 +100,14 @@ settingsRouter.patch(
       data: {
         timezone: payload.timezone,
         personalBestLpm: payload.personalBestLpm,
+        medicationManagementUrl: payload.medicationManagementUrl,
         fastLoginEnabled,
         fastLoginToken
       },
       select: {
         timezone: true,
         personalBestLpm: true,
+        medicationManagementUrl: true,
         fastLoginEnabled: true,
         fastLoginToken: true
       }
