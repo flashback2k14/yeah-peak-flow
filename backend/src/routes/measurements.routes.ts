@@ -25,6 +25,14 @@ const mapMeasurement = (item: {
   note: item.note
 });
 
+const measurementSelect = {
+  id: true,
+  measuredAt: true,
+  peakFlowLpm: true,
+  inhalationTiming: true,
+  note: true
+} as const;
+
 export const measurementsRouter = Router();
 
 measurementsRouter.use(requireAuth);
@@ -42,13 +50,7 @@ measurementsRouter.post(
         inhalationTiming: payload.inhalationTiming,
         note: payload.note?.trim() || null
       },
-      select: {
-        id: true,
-        measuredAt: true,
-        peakFlowLpm: true,
-        inhalationTiming: true,
-        note: true
-      }
+      select: measurementSelect
     });
 
     res.status(201).json(mapMeasurement(measurement));
@@ -79,13 +81,7 @@ measurementsRouter.get(
       orderBy: {
         measuredAt: 'asc'
       },
-      select: {
-        id: true,
-        measuredAt: true,
-        peakFlowLpm: true,
-        inhalationTiming: true,
-        note: true
-      }
+      select: measurementSelect
     });
 
     res.json({
@@ -101,33 +97,34 @@ measurementsRouter.patch(
     const { id } = measurementIdSchema.parse(req.params);
     const payload = updateMeasurementSchema.parse(req.body);
 
-    const existing = await prisma.measurement.findFirst({
+    const updateResult = await prisma.measurement.updateMany({
       where: {
         id,
         userId: req.user!.id
-      }
-    });
-
-    if (!existing) {
-      throw new HttpError(404, 'Messung nicht gefunden.');
-    }
-
-    const measurement = await prisma.measurement.update({
-      where: { id },
+      },
       data: {
         measuredAt: payload.measuredAt ? parseIsoToDate(payload.measuredAt) : undefined,
         peakFlowLpm: payload.peakFlowLpm,
         inhalationTiming: payload.inhalationTiming,
         note: payload.note === undefined ? undefined : payload.note?.trim() || null
-      },
-      select: {
-        id: true,
-        measuredAt: true,
-        peakFlowLpm: true,
-        inhalationTiming: true,
-        note: true
       }
     });
+
+    if (updateResult.count === 0) {
+      throw new HttpError(404, 'Messung nicht gefunden.');
+    }
+
+    const measurement = await prisma.measurement.findFirst({
+      where: {
+        id,
+        userId: req.user!.id
+      },
+      select: measurementSelect
+    });
+
+    if (!measurement) {
+      throw new HttpError(404, 'Messung nicht gefunden.');
+    }
 
     res.json(mapMeasurement(measurement));
   })
@@ -138,21 +135,17 @@ measurementsRouter.delete(
   asyncHandler(async (req, res) => {
     const { id } = measurementIdSchema.parse(req.params);
 
-    const existing = await prisma.measurement.findFirst({
+    const deleteResult = await prisma.measurement.deleteMany({
       where: {
         id,
         userId: req.user!.id
-      },
-      select: {
-        id: true
       }
     });
 
-    if (!existing) {
+    if (deleteResult.count === 0) {
       throw new HttpError(404, 'Messung nicht gefunden.');
     }
 
-    await prisma.measurement.delete({ where: { id } });
     res.status(204).send();
   })
 );

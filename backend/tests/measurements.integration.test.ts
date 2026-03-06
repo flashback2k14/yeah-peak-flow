@@ -1,4 +1,5 @@
 import request from 'supertest';
+import { randomUUID } from 'node:crypto';
 import { DateTime } from 'luxon';
 import { prisma } from '../src/lib/prisma.js';
 import { createApp } from '../src/app.js';
@@ -13,7 +14,7 @@ const cleanDb = async () => {
 
 const registerAndGetCookie = async (): Promise<string> => {
   const response = await request(app).post('/api/v1/auth/register').send({
-    email: 'testuser@example.com',
+    email: `testuser-${randomUUID()}@example.com`,
     password: 'Sicher1234'
   });
 
@@ -102,5 +103,85 @@ describe('Measurements & Dashboard API', () => {
     expect(response.body.series[0].beforeZone).toBe('green');
     expect(response.body.series[0].afterZone).toBe('green');
     expect(response.body.series[0].avgZone).toBe('green');
+  });
+
+  it('liefert konsistent 404 fuer PATCH und DELETE auf nicht vorhandene Messungen', async () => {
+    const cookie = await registerAndGetCookie();
+    const missingId = randomUUID();
+
+    const patchResponse = await request(app)
+      .patch(`/api/v1/measurements/${missingId}`)
+      .set('Cookie', cookie)
+      .send({ note: 'aktualisiert' });
+
+    const deleteResponse = await request(app)
+      .delete(`/api/v1/measurements/${missingId}`)
+      .set('Cookie', cookie);
+
+    expect(patchResponse.status).toBe(404);
+    expect(deleteResponse.status).toBe(404);
+  });
+
+  it('erzwingt den userId-Scope bei PATCH und DELETE', async () => {
+    const ownerCookie = await registerAndGetCookie();
+    const otherCookie = await registerAndGetCookie();
+    const measuredAt = DateTime.fromObject({ year: 2026, month: 3, day: 3, hour: 10, minute: 0 }).toISO();
+
+    const createResponse = await request(app).post('/api/v1/measurements').set('Cookie', ownerCookie).send({
+      measuredAt,
+      peakFlowLpm: 420,
+      inhalationTiming: 'before_inhalation',
+      note: 'owner'
+    });
+
+    expect(createResponse.status).toBe(201);
+    const measurementId = createResponse.body.id as string;
+
+    const foreignPatchResponse = await request(app)
+      .patch(`/api/v1/measurements/${measurementId}`)
+      .set('Cookie', otherCookie)
+      .send({ note: 'fremd' });
+
+    const foreignDeleteResponse = await request(app)
+      .delete(`/api/v1/measurements/${measurementId}`)
+      .set('Cookie', otherCookie);
+
+    expect(foreignPatchResponse.status).toBe(404);
+    expect(foreignDeleteResponse.status).toBe(404);
+
+    const persisted = await prisma.measurement.findUnique({
+      where: { id: measurementId },
+      select: { note: true }
+    });
+
+    expect(persisted).not.toBeNull();
+    expect(persisted?.note).toBe('owner');
+  });
+
+  it('liefert bei konkurrierendem PATCH und DELETE keine 500-Fehler', async () => {
+    const cookie = await registerAndGetCookie();
+    const measuredAt = DateTime.fromObject({ year: 2026, month: 3, day: 4, hour: 7, minute: 30 }).toISO();
+
+    const createResponse = await request(app).post('/api/v1/measurements').set('Cookie', cookie).send({
+      measuredAt,
+      peakFlowLpm: 430,
+      inhalationTiming: 'before_inhalation'
+    });
+
+    expect(createResponse.status).toBe(201);
+    const measurementId = createResponse.body.id as string;
+
+    const [patchResponse, deleteResponse] = await Promise.all([
+      request(app)
+        .patch(`/api/v1/measurements/${measurementId}`)
+        .set('Cookie', cookie)
+        .send({ note: 'race-update' }),
+      request(app).delete(`/api/v1/measurements/${measurementId}`).set('Cookie', cookie)
+    ]);
+
+    expect([200, 404]).toContain(patchResponse.status);
+    expect(deleteResponse.status).toBe(204);
+    expect(patchResponse.status).toBeLessThan(500);
+    expect(deleteResponse.status).toBeLessThan(500);
   });
 });

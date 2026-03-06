@@ -1,6 +1,6 @@
 # FND-004 - Nicht-atomare Update/Delete-Operationen bei Messungen
 
-- Status: Open
+- Status: Resolved
 - Priority: P2
 - Finding Date: 2026-03-06
 - Source: Security/Data-Integrity Review
@@ -36,3 +36,14 @@ Bei Race Conditions kann der Datensatz zwischen den beiden Schritten verschwinde
 
 - Simulierter paralleler Delete+Patch auf dieselbe Messung.
 - Erwartung: deterministische und fachlich korrekte Statuscodes.
+
+## Umsetzungsnotiz (2026-03-06)
+
+- `PATCH`/`DELETE` wurden auf atomare `updateMany`/`deleteMany` mit `{ id, userId }` umgestellt.
+- Bei `count === 0` wird konsistent `404` (`Messung nicht gefunden.`) geliefert.
+- Integrationstests decken fehlende Ressourcen, `userId`-Scope und konkurrierenden `PATCH`+`DELETE`-Zugriff ohne 500er ab.
+
+## Risiko / Rollout
+
+- Restrisiko: Zwischen erfolgreichem `PATCH` und Response-Read kann ein konkurrierendes `DELETE` stattfinden; der Pfad liefert dann ebenfalls fachlich korrekt `404` statt `500`.
+- Rollout: Kein Schema-/API-Contract-Change, daher normaler Backend-Deploy ohne Migrationsschritt ausreichend.
