@@ -10,6 +10,7 @@ export const dashboardRouter = Router();
 dashboardRouter.use(requireAuth);
 
 type AsthmaZone = 'green' | 'yellow' | 'red';
+type ZoneCounts = Record<AsthmaZone | 'unclassified', number>;
 
 const classifyAsthmaZone = (value: number, personalBestLpm: number): AsthmaZone => {
   const ratio = value / personalBestLpm;
@@ -102,25 +103,59 @@ dashboardRouter.get(
         avgZone: personalBestLpm ? classifyAsthmaZone(point.avg, personalBestLpm) : null
       }));
 
+    const aggregatedStats = measurements.reduce(
+      (acc, item) => {
+        const value = item.peakFlowLpm;
+        acc.sum += value;
+        acc.min = acc.min === null ? value : Math.min(acc.min, value);
+        acc.max = acc.max === null ? value : Math.max(acc.max, value);
+
+        if (item.inhalationTiming === 'after_inhalation') {
+          acc.afterSum += value;
+          acc.afterCount += 1;
+        } else {
+          acc.beforeSum += value;
+          acc.beforeCount += 1;
+        }
+
+        if (!personalBestLpm) {
+          acc.zoneCounts.unclassified += 1;
+          return acc;
+        }
+
+        const zone = classifyAsthmaZone(value, personalBestLpm);
+        acc.zoneCounts[zone] += 1;
+        return acc;
+      },
+      {
+        sum: 0,
+        min: null as number | null,
+        max: null as number | null,
+        beforeSum: 0,
+        beforeCount: 0,
+        afterSum: 0,
+        afterCount: 0,
+        zoneCounts: {
+          green: 0,
+          yellow: 0,
+          red: 0,
+          unclassified: 0
+        } satisfies ZoneCounts
+      }
+    );
+
     const count = measurements.length;
-    const values = measurements.map((item) => item.peakFlowLpm);
-    const beforeValues = measurements
-      .filter((item) => item.inhalationTiming === 'before_inhalation')
-      .map((item) => item.peakFlowLpm);
-    const afterValues = measurements
-      .filter((item) => item.inhalationTiming === 'after_inhalation')
-      .map((item) => item.peakFlowLpm);
 
     const stats = {
       count,
-      min: count ? Math.min(...values) : null,
-      max: count ? Math.max(...values) : null,
-      avg: count ? Number((values.reduce((sum, value) => sum + value, 0) / count).toFixed(1)) : null,
-      avgBeforeInhalation: beforeValues.length
-        ? Number((beforeValues.reduce((sum, value) => sum + value, 0) / beforeValues.length).toFixed(1))
+      min: aggregatedStats.min,
+      max: aggregatedStats.max,
+      avg: count ? Number((aggregatedStats.sum / count).toFixed(1)) : null,
+      avgBeforeInhalation: aggregatedStats.beforeCount
+        ? Number((aggregatedStats.beforeSum / aggregatedStats.beforeCount).toFixed(1))
         : null,
-      avgAfterInhalation: afterValues.length
-        ? Number((afterValues.reduce((sum, value) => sum + value, 0) / afterValues.length).toFixed(1))
+      avgAfterInhalation: aggregatedStats.afterCount
+        ? Number((aggregatedStats.afterSum / aggregatedStats.afterCount).toFixed(1))
         : null,
       zone: {
         personalBestLpm,
@@ -128,23 +163,7 @@ dashboardRouter.get(
           yellowMin: personalBestLpm ? Number((personalBestLpm * 0.6).toFixed(1)) : null,
           greenMin: personalBestLpm ? Number((personalBestLpm * 0.8).toFixed(1)) : null
         },
-        counts: measurements.reduce(
-          (acc, item) => {
-            if (!personalBestLpm) {
-              acc.unclassified += 1;
-              return acc;
-            }
-            const zone = classifyAsthmaZone(item.peakFlowLpm, personalBestLpm);
-            acc[zone] += 1;
-            return acc;
-          },
-          {
-            green: 0,
-            yellow: 0,
-            red: 0,
-            unclassified: 0
-          }
-        )
+        counts: aggregatedStats.zoneCounts
       }
     };
 

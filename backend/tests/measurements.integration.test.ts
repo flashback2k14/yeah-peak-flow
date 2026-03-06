@@ -108,6 +108,39 @@ describe('Measurements & Dashboard API', () => {
     expect(response.body.series[0].avgZone).toBe('green');
   });
 
+  it('liefert Dashboard-Statistiken stabil bei sehr grossen Monatsdaten', async () => {
+    const cookie = await registerAndGetCookie();
+    const meResponse = await request(app).get('/api/v1/auth/me').set('Cookie', cookie);
+    expect(meResponse.status).toBe(200);
+
+    const userId = meResponse.body.user.id as string;
+    const totalMeasurements = 130_000;
+    const batchSize = 5_000;
+
+    for (let offset = 0; offset < totalMeasurements; offset += batchSize) {
+      const size = Math.min(batchSize, totalMeasurements - offset);
+      const data = Array.from({ length: size }, (_, index) => ({
+        userId,
+        measuredAt: new Date('2026-03-10T08:00:00.000Z'),
+        peakFlowLpm: 300 + ((offset + index) % 201),
+        inhalationTiming: (offset + index) % 2 === 0 ? 'before_inhalation' : 'after_inhalation'
+      }));
+
+      await prisma.measurement.createMany({ data });
+    }
+
+    const response = await request(app)
+      .get('/api/v1/dashboard/monthly?month=2026-03')
+      .set('Cookie', cookie);
+
+    expect(response.status).toBe(200);
+    expect(response.body.stats.count).toBe(totalMeasurements);
+    expect(response.body.stats.min).toBe(300);
+    expect(response.body.stats.max).toBe(500);
+    expect(response.body.stats.avg).toBe(400);
+    expect(response.body.series).toHaveLength(1);
+  }, 30_000);
+
   it('liefert konsistent 404 fuer PATCH und DELETE auf nicht vorhandene Messungen', async () => {
     const cookie = await registerAndGetCookie();
     const missingId = randomUUID();

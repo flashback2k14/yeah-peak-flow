@@ -1,6 +1,6 @@
 # FND-005 - Stabilitaetsrisiko durch Spread bei Math.min/Math.max
 
-- Status: Open
+- Status: Done (2026-03-06)
 - Priority: P3
 - Finding Date: 2026-03-06
 - Source: Security/Data-Integrity Review
@@ -34,3 +34,13 @@ Bei grossen Datenmengen kann dies zu `RangeError` fuehren und den Request abbrec
 
 - Lastnaher Test mit vielen Messwerten in einem Monat.
 - Erwartung: kein RangeError, konsistente Statistikwerte.
+
+## Umsetzungsnotiz (BL-005)
+
+- `backend/src/routes/dashboard.routes.ts`: Statistikaggregation auf einen einzelnen `reduce`-Durchlauf umgestellt; `min`/`max` werden ohne Spread berechnet.
+- `backend/tests/measurements.integration.test.ts`: Integrationstest mit `130000` Monatsmesswerten ergaenzt, inkl. Erwartung auf stabile 200-Antwort und konsistente Kennzahlen.
+
+## Risiko / Rollout
+
+- Restrisiko: Bei sehr grossen Datensaetzen bleibt der Endpunkt naturgemaess CPU-/I/O-intensiv, liefert aber keine argument-listenbedingten `RangeError` mehr.
+- Rollout: Kein API- oder Schema-Change; normaler Backend-Deploy ausreichend.
