@@ -10,3 +10,4 @@ yarn-debug.log*
 yarn-error.log*
 backend/prisma/*.db
 backend/prisma/*.db-journal
+tickets
