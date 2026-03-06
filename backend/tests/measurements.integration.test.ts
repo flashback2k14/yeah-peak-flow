@@ -13,12 +13,15 @@ const cleanDb = async () => {
 };
 
 const registerAndGetCookie = async (): Promise<string> => {
-  const response = await request(app).post('/api/v1/auth/register').send({
-    email: `testuser-${randomUUID()}@example.com`,
-    password: 'Sicher1234'
-  });
+  const email = `testuser-${randomUUID()}@example.com`;
+  const password = 'Sicher1234';
+  const registerResponse = await request(app).post('/api/v1/auth/register').send({ email, password });
+  expect(registerResponse.status).toBe(202);
 
-  return response.headers['set-cookie'][0];
+  const loginResponse = await request(app).post('/api/v1/auth/login').send({ email, password });
+  expect(loginResponse.status).toBe(200);
+
+  return loginResponse.headers['set-cookie'][0] as string;
 };
 
 describe('Measurements & Dashboard API', () => {

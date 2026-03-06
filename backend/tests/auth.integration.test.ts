@@ -9,6 +9,14 @@ const registerPayload = {
   password: 'Sicher1234'
 };
 
+const register = () => request(app).post('/api/v1/auth/register').send(registerPayload);
+
+const loginAndGetCookie = async (): Promise<string> => {
+  const loginResponse = await request(app).post('/api/v1/auth/login').send(registerPayload);
+  expect(loginResponse.status).toBe(200);
+  return loginResponse.headers['set-cookie'][0] as string;
+};
+
 const cleanDb = async () => {
   await prisma.measurement.deleteMany();
   await prisma.userSettings.deleteMany();
@@ -25,17 +33,35 @@ describe('Auth API', () => {
     await prisma.$disconnect();
   });
 
-  it('registriert einen Benutzer und setzt ein Auth-Cookie', async () => {
-    const response = await request(app).post('/api/v1/auth/register').send(registerPayload);
+  it('nimmt Registrierung an und legt bei neuer E-Mail einen Benutzer an', async () => {
+    const response = await register();
+    const persistedUser = await prisma.user.findUnique({
+      where: { email: registerPayload.email },
+      select: { email: true }
+    });
 
-    expect(response.status).toBe(201);
-    expect(response.body.user.email).toBe(registerPayload.email);
-    expect(response.headers['set-cookie']).toBeDefined();
+    expect(response.status).toBe(202);
+    expect(response.body).toEqual({
+      message:
+        'Registrierung entgegengenommen. Falls die E-Mail noch nicht registriert ist, wurde ein Konto angelegt.'
+    });
+    expect(persistedUser?.email).toBe(registerPayload.email);
+  });
+
+  it('liefert fuer neue und bestehende E-Mail dieselbe Register-Antwort', async () => {
+    const firstResponse = await register();
+    const secondResponse = await register();
+    const userCount = await prisma.user.count({ where: { email: registerPayload.email } });
+
+    expect(firstResponse.status).toBe(202);
+    expect(secondResponse.status).toBe(202);
+    expect(secondResponse.body).toEqual(firstResponse.body);
+    expect(userCount).toBe(1);
   });
 
   it('liefert den aktuellen Benutzer ueber /auth/me', async () => {
-    const registerResponse = await request(app).post('/api/v1/auth/register').send(registerPayload);
-    const authCookie = registerResponse.headers['set-cookie'][0];
+    await register();
+    const authCookie = await loginAndGetCookie();
 
     const meResponse = await request(app).get('/api/v1/auth/me').set('Cookie', authCookie);
 
@@ -50,8 +76,8 @@ describe('Auth API', () => {
   });
 
   it('erlaubt Fast-Login mit benutzerspezifischem Token', async () => {
-    const registerResponse = await request(app).post('/api/v1/auth/register').send(registerPayload);
-    const authCookie = registerResponse.headers['set-cookie'][0];
+    await register();
+    const authCookie = await loginAndGetCookie();
 
     const settingsResponse = await request(app).patch('/api/v1/settings').set('Cookie', authCookie).send({
       fastLoginEnabled: true,

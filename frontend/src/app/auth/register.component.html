@@ -23,6 +23,9 @@
       @if (errorMessage) {
       <p class="error-text">{{ errorMessage }}</p>
       }
+      @if (successMessage) {
+      <p class="muted">{{ successMessage }}</p>
+      }
 
       <button class="btn btn-primary" type="submit" [disabled]="loading">
         {{ loading ? 'Registrierung...' : 'Registrieren' }}

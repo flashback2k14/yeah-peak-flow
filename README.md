@@ -134,6 +134,10 @@ npm test
 - `GET /api/v1/exports/available-months`
 - `GET /api/v1/exports/measurements.pdf?months=YYYY-MM,YYYY-MM`
 
+Hinweis zu Auth:
+- `POST /api/v1/auth/register` antwortet immer generisch mit `202 Accepted` (keine Unterscheidung zwischen neuer und bereits registrierter E-Mail) und erstellt keine Session.
+- Anmeldung erfolgt anschliessend ueber `POST /api/v1/auth/login`.
+
 ### Asthma-Zonen (implementiert)
 - Grundlage: `personalBestLpm` (aus Settings)
 - Zonen:

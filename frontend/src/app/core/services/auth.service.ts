@@ -3,7 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { API_BASE_URL } from './api-base.token';
-import { AuthResponse, User } from '../../shared/models/api.models';
+import { AuthResponse, RegisterResponse, User } from '../../shared/models/api.models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -44,16 +44,8 @@ export class AuthService {
       );
   }
 
-  register(email: string, password: string): Observable<User> {
-    return this.http
-      .post<AuthResponse>(`${this.apiBaseUrl}/auth/register`, { email, password })
-      .pipe(
-        map((response) => response.user),
-        tap((user) => {
-          this.sessionInitialized = true;
-          this.userState.set(user);
-        })
-      );
+  register(email: string, password: string): Observable<RegisterResponse> {
+    return this.http.post<RegisterResponse>(`${this.apiBaseUrl}/auth/register`, { email, password });
   }
 
   login(email: string, password: string): Observable<User> {

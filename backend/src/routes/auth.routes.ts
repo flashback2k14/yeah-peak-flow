@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import argon2 from 'argon2';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { asyncHandler } from '../utils/async-handler.js';
 import { fastLoginSchema, loginSchema, registerSchema } from '../schemas/auth.schemas.js';
@@ -14,34 +15,30 @@ authRouter.post(
   asyncHandler(async (req, res) => {
     const { email, password } = registerSchema.parse(req.body);
     const normalizedEmail = email.toLowerCase();
-
-    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-    if (existingUser) {
-      throw new HttpError(409, 'Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.');
-    }
-
     const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
 
-    const user = await prisma.user.create({
-      data: {
-        email: normalizedEmail,
-        passwordHash,
-        settings: {
-          create: {
-            timezone: 'Europe/Berlin'
+    try {
+      await prisma.user.create({
+        data: {
+          email: normalizedEmail,
+          passwordHash,
+          settings: {
+            create: {
+              timezone: 'Europe/Berlin'
+            }
           }
         }
-      },
-      select: {
-        id: true,
-        email: true
+      });
+    } catch (error) {
+      if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002')) {
+        throw error;
       }
+    }
+
+    res.status(202).json({
+      message:
+        'Registrierung entgegengenommen. Falls die E-Mail noch nicht registriert ist, wurde ein Konto angelegt.'
     });
-
-    const token = signAuthToken({ userId: user.id, email: user.email });
-    setAuthCookie(res, token);
-
-    res.status(201).json({ user });
   })
 );
 

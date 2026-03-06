@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from '../core/services/auth.service';
 
@@ -15,7 +15,6 @@ import { AuthService } from '../core/services/auth.service';
 export class RegisterComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
-  private readonly router = inject(Router);
 
   readonly form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -31,6 +30,7 @@ export class RegisterComponent {
 
   loading = false;
   errorMessage = '';
+  successMessage = '';
 
   submit(): void {
     if (this.form.invalid || this.loading) {
@@ -42,12 +42,16 @@ export class RegisterComponent {
 
     this.loading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
     this.authService
       .register(email ?? '', password ?? '')
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
-        next: () => this.router.navigateByUrl('/app/entry'),
+        next: (response) => {
+          this.successMessage = response.message;
+          this.form.reset();
+        },
         error: (error) => {
           this.errorMessage = error?.error?.error ?? 'Registrierung fehlgeschlagen.';
         }
