@@ -1,0 +1,40 @@
+@import "tailwindcss";
+@source "./**/*.{html,ts}";
+
+@plugin "tailwindcss-animate";
+
+@theme {
+  --font-display: 'Fraunces', serif;
+  --font-body: 'DM Sans', sans-serif;
+
+  --color-brand: #0D9488;
+  --color-brand-dark: #0F766E;
+  --color-accent: #D97706;
+  --color-surface: #FAFAF7;
+  --color-bg-from: #0C2340;
+  --color-bg-to: #0F3D4F;
+  --color-zone-green: #10B981;
+  --color-zone-yellow: #F59E0B;
+  --color-zone-red: #F43F5E;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
+  font-family: 'Fraunces', serif;
+}

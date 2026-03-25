@@ -1,8 +1,8 @@
 # PROJ-1: Benutzer-Authentifizierung
 
-## Status: In Progress
+## Status: In Review
 **Created:** 2026-03-22
-**Last Updated:** 2026-03-23
+**Last Updated:** 2026-03-25
 
 ## Dependencies
 - None
@@ -95,6 +95,21 @@ JWT-Payload enthält: `userId`, `email`. Ablaufzeit: 7 Tage.
 
 **Frontend:**
 - `@angular/material` — Formularfelder, Buttons, Fehlermeldungen (keine Custom-Komponenten)
+
+## Implementation Notes (Frontend)
+
+**Angular app scaffolded:** `apps/frontend/` — Angular v21, standalone components, `@angular/forms/signals`
+
+**Files created:**
+- `src/app/app.ts` + `app.config.ts` + `app.routes.ts` — app shell (RouterOutlet, lazy routes)
+- `src/app/core/services/auth.service.ts` — JWT in localStorage, `isAuthenticated` signal, `login`/`register`/`logout`
+- `src/app/core/guards/auth.guard.ts` — functional guard redirecting to `/login`
+- `src/app/core/interceptors/auth.interceptor.ts` — Bearer token + auto-logout on 401
+- `src/app/features/auth/login-page/` — "Willkommen zurück", Signal Forms
+- `src/app/features/auth/register-page/` — "Konto erstellen", Signal Forms + password match check
+- `src/app/shared/ui/hlm-input.directive.ts` + `hlm-button.directive.ts` — pass-through directives (spartan/ui not available as npm packages without Nx)
+
+**Note:** spartan/ui individual packages (`@spartan-ng/ui-*-helm`) are not published to npm — they require the Nx generator. Local stub directives used instead; all visual styling handled by Tailwind classes in templates.
 
 ## QA Test Results
 _To be added by /qa_

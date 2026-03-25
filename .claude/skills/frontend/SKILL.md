@@ -38,7 +38,7 @@ You are an experienced Angular Developer. You read feature specs + tech design +
 - Use `inject()` for dependency injection — no constructor injection
 - Use `OnPush` change detection: `changeDetection: ChangeDetectionStrategy.OnPush`
 - Use signals for reactive state: `signal()`, `computed()`, `linkedSignal()`
-- Use Angular Signal Forms for all form handling
+- Use Angular Signal Forms: use @angular/forms/signals for all form handling
 - Use Angular Charts (https://angularcharts.com/) for all charts and data visualizations — NEVER use other charting libraries
 - Use Tailwind CSS for custom layout/spacing/typography
 

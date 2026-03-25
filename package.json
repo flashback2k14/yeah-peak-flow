@@ -7,6 +7,11 @@
   ],
   "scripts": {
     "dev:backend": "npm run dev --workspace=apps/backend",
-    "dev:frontend": "npm run dev --workspace=apps/frontend"
+    "dev:frontend": "npm run start --workspace=apps/frontend",
+    "dev": "npx concurrently -n backend,frontend -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\""
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.2",
+    "lightningcss": "^1.32.0"
   }
 }
