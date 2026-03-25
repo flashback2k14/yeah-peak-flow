@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run start:*)",
+      "Bash(ng serve:*)",
+      "Bash(ng build:*)",
+      "Bash(ng lint:*)",
+      "Bash(ng test:*)",
+      "Bash(ng generate:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npx prisma studio:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx prisma deploy:*)",
+      "Bash(docker compose up:*)",
+      "Bash(docker compose down:*)",
+      "Bash(docker compose build:*)",
+      "Bash(docker compose logs:*)",
+      "Bash(docker compose ps:*)",
+      "Bash(docker compose exec:*)",
+      "Bash(docker build:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git tag:*)",
+      "Bash(git log:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git diff:*)",
+      "Bash(lsof:*)",
+      "Bash(kill:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)"
+    ]
+  }
+}
