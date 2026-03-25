@@ -1,28 +1,52 @@
 # Product Requirements Document
 
 ## Vision
-_Describe what you are building and why._
+
+Eine mobile-first Web-App, die Eltern und Betreuern ermöglicht, Peak-Flow-Messwerte für Asthma-Patienten einfach zu erfassen, mit einem Ampel-Zonensystem (Grün/Gelb/Rot) zu überwachen und als PDF-Report für Arztbesuche zu exportieren.
 
 ## Target Users
-_Who will use this product? Describe their needs and pain points._
+
+**Primär: Eltern und Betreuer von Asthmatikern** (primär Kinder), die:
+
+- täglich Peak-Flow-Messungen für ihre Angehörigen dokumentieren müssen
+- den Verlauf visuell überwachen möchten, um Verschlechterungen frühzeitig zu erkennen
+- regelmäßig Berichte für medizinisches Fachpersonal (Kinderarzt, Lungenfacharzt) erstellen
+
+**Pain Points:**
+
+- Manuelle Aufzeichnung auf Papier ist fehleranfällig und geht verloren
+- Kein einfacher Überblick über Trends und Zonenverlauf
+- PDF-Erstellung für den Arztbesuch ist aufwändig
 
 ## Core Features (Roadmap)
 
-| Priority | Feature | Status |
-|----------|---------|--------|
-| P0 (MVP) | _Feature 1_ | Planned |
-| P0 (MVP) | _Feature 2_ | Planned |
-| P1 | _Feature 3_ | Planned |
-| P2 | _Feature 4_ | Planned |
+| Priority | Feature                        | Status  |
+| -------- | ------------------------------ | ------- |
+| P0 (MVP) | Benutzer-Authentifizierung     | Planned |
+| P0 (MVP) | Patientenprofil-Verwaltung     | Planned |
+| P0 (MVP) | Messwert-Erfassung             | Planned |
+| P0 (MVP) | Dashboard & Peak-Flow-Diagramm | Planned |
+| P1       | PDF-Export                     | Planned |
 
 ## Success Metrics
-_How will you measure success? (e.g., user signups, retention, task completion rate)_
+
+- Messungen pro Nutzer pro Woche (Ziel: ≥ 14, d. h. 2× täglich)
+- PDF-Exports pro aktiven Nutzer pro Monat (Ziel: ≥ 1)
+- 4-Wochen-Retention (Ziel: ≥ 60 %)
 
 ## Constraints
-_Budget, timeline, technical limitations, team size._
+
+- Mobile-first (Smartphone als primäres Gerät, kein dedizierter Desktop-Fokus)
+- Stack: Angular + Node.js + Express + Prisma ORM + SQLite
+- Einzelentwickler, kein dediziertes Budget
 
 ## Non-Goals
-_What are you explicitly NOT building in this version?_
+
+- Keine Echtzeit-Benachrichtigungen oder automatischen medizinischen Warnungen
+- Keine direkte Gerätekopplung (Bluetooth-Spirometer oder Medizingeräte-APIs)
+- Keine Symptom- oder Medikamentenverfolgung (nur Freitext-Notizen)
+- Keine Mehrsprachigkeit in Version 1 (App ist auf Deutsch)
+- Kein Arzt-/Klinik-Login mit Mehrmandantenfähigkeit
 
 ---
 
