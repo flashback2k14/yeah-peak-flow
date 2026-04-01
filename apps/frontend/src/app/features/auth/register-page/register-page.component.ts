@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
   email as emailValidator,
@@ -24,16 +18,8 @@ import { HlmButtonDirective } from '../../../shared/ui/hlm-button.directive';
   selector: 'app-register-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    RouterLink,
-    FormField,
-    LucideAngularModule,
-    HlmInputDirective,
-    HlmButtonDirective,
-  ],
-  providers: [
-    { provide: LUCIDE_ICONS, multi: true, useValue: new LucideIconProvider(AUTH_ICONS) },
-  ],
+  imports: [RouterLink, FormField, LucideAngularModule, HlmInputDirective, HlmButtonDirective],
+  providers: [{ provide: LUCIDE_ICONS, multi: true, useValue: new LucideIconProvider(AUTH_ICONS) }],
   templateUrl: './register-page.component.html',
 })
 export class RegisterPageComponent {
@@ -47,12 +33,12 @@ export class RegisterPageComponent {
   });
   readonly registerForm = form(this.registerModel, (f) => {
     required(f.email, { message: 'E-Mail ist erforderlich' });
-    emailValidator(f.email, { message: 'Ungueltige E-Mail-Adresse' });
+    emailValidator(f.email, { message: 'Ungültige E-Mail-Adresse' });
     required(f.password, { message: 'Passwort ist erforderlich' });
     minLength(f.password, 8, {
       message: 'Passwort muss mindestens 8 Zeichen lang sein',
     });
-    required(f.confirmPassword, { message: 'Bitte Passwort bestaetigen' });
+    required(f.confirmPassword, { message: 'Bitte Passwort bestätigen' });
   });
 
   readonly passwordMismatch = computed(() => {
@@ -65,22 +51,28 @@ export class RegisterPageComponent {
   readonly showPassword = signal(false);
   readonly showConfirmPassword = signal(false);
 
-  async onSubmit(): Promise<void> {
-    const success = await submit(this.registerForm);
-    if (!success || this.passwordMismatch()) return;
+  async onSubmit(event: Event): Promise<void> {
+    event.preventDefault();
+    await submit(this.registerForm, async () => {
+      if (this.passwordMismatch()) {
+        return undefined;
+      }
 
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
-    const { email, password } = this.registerModel();
-    this.auth.register(email, password).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
-      error: (err) => {
-        this.isLoading.set(false);
-        this.errorMessage.set(
-          err?.error?.error ??
-            'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.',
-        );
-      },
+      this.isLoading.set(true);
+      this.errorMessage.set(null);
+      const { email, password } = this.registerModel();
+      this.auth.register(email, password).subscribe({
+        next: () => {
+          this.isLoading.set(false);
+          this.router.navigate(['/dashboard']);
+        },
+        error: (err) => {
+          this.isLoading.set(false);
+          this.errorMessage.set(
+            err?.error?.error ?? 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.',
+          );
+        },
+      });
     });
   }
 

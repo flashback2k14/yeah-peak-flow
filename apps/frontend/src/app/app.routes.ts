@@ -20,10 +20,9 @@ export const routes: Routes = [
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/auth/login-page/login-page.component').then(
-        (m) => m.LoginPageComponent,
+      import('./features/dashboard/dashboard-page/dashboard-page.component').then(
+        (m) => m.DashboardPageComponent,
       ),
-    // TODO: Replace with DashboardComponent when PROJ-4 is implemented
   },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'login' },
