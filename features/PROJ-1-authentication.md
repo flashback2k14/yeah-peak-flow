@@ -133,4 +133,13 @@ JWT-Payload enthält: `userId`, `email`. Ablaufzeit: 7 Tage.
 | BUG-11 | Critical | `(ngSubmit)` used without `FormsModule` — Angular's `NgForm` never applied, so `onSubmit()` was never called; browser fell back to native GET form submission, leaking credentials as URL query params | Changed `(ngSubmit)="onSubmit()"` → `(submit)="onSubmit($event)"` in both login and register HTML; added `event.preventDefault()` as first line of both `onSubmit()` methods |
 
 ## Deployment
-_To be added by /deploy_
+
+**Deployed:** 2026-04-01
+**Host:** localhost (Docker Compose)
+
+- `docker-compose.yml` at repo root orchestrates frontend (nginx:alpine, port 80) and backend (node:20-alpine, port 3000 internal)
+- nginx proxies `/auth/*` → backend container; serves Angular SPA with fallback to `index.html`
+- SQLite database persisted in `sqlite_data` Docker named volume at `/app/data/prod.db`
+- Backend runs `prisma migrate deploy` on startup before accepting connections
+- Frontend production build uses `environment.prod.ts` (`apiUrl: ''`) for relative API URLs
+- Health check: `GET /health` on backend; frontend depends on `service_healthy`

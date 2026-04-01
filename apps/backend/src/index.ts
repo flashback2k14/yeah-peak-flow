@@ -17,6 +17,8 @@ app.use(helmet());
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? 'http://localhost:4200' }));
 app.use(express.json());
 
+app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+
 app.use('/auth', authRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

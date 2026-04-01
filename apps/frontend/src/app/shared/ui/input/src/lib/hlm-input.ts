@@ -1,19 +1,4 @@
-import {
-  computed,
-  Directive,
-  effect,
-  forwardRef,
-  inject,
-  Injector,
-  input,
-  linkedSignal,
-  signal,
-  untracked,
-  type DoCheck,
-} from '@angular/core';
-import { FormGroupDirective, NgControl, NgForm } from '@angular/forms';
-import { BrnFormFieldControl } from '@spartan-ng/brain/form-field';
-import { ErrorStateMatcher, ErrorStateTracker } from '@spartan-ng/brain/forms';
+import { computed, Directive, inject, Injector, input, signal } from '@angular/core';
 import { classes } from '@spartan-ng/helm/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { ClassValue } from 'clsx';
@@ -36,63 +21,28 @@ type InputVariants = VariantProps<typeof inputVariants>;
 
 @Directive({
   selector: '[hlmInput]',
-  providers: [
-    {
-      provide: BrnFormFieldControl,
-      useExisting: forwardRef(() => HlmInput),
-    },
-  ],
 })
-export class HlmInput implements BrnFormFieldControl, DoCheck {
+export class HlmInput {
   private readonly _injector = inject(Injector);
   private readonly _additionalClasses = signal<ClassValue>('');
-
-  private readonly _errorStateTracker: ErrorStateTracker;
-
-  private readonly _defaultErrorStateMatcher = inject(ErrorStateMatcher);
-  private readonly _parentForm = inject(NgForm, { optional: true });
-  private readonly _parentFormGroup = inject(FormGroupDirective, { optional: true });
+  private readonly _state = signal<{ error: InputVariants['error'] }>({ error: 'auto' });
 
   public readonly error = input<InputVariants['error']>('auto');
 
-  protected readonly _state = linkedSignal(() => ({ error: this.error() }));
-
-  public readonly ngControl: NgControl | null = this._injector.get(NgControl, null);
-
-  public readonly errorState = computed(() => this._errorStateTracker.errorState());
+  protected readonly _computedState = computed(() => ({ error: this.error() }));
 
   constructor() {
-    this._errorStateTracker = new ErrorStateTracker(
-      this._defaultErrorStateMatcher,
-      this.ngControl,
-      this._parentFormGroup,
-      this._parentForm,
+    classes(
+      () => [inputVariants({ error: this._state().error }), this._additionalClasses()],
+      { injector: this._injector },
     );
-
-    classes(() => [inputVariants({ error: this._state().error }), this._additionalClasses()]);
-
-    effect(() => {
-      const error = this._errorStateTracker.errorState();
-      untracked(() => {
-        if (this.ngControl) {
-          const shouldShowError =
-            error && this.ngControl.invalid && (this.ngControl.touched || this.ngControl.dirty);
-          this._errorStateTracker.errorState.set(shouldShowError ? true : false);
-          this.setError(shouldShowError ? true : 'auto');
-        }
-      });
-    });
-  }
-
-  ngDoCheck() {
-    this._errorStateTracker.updateErrorState();
   }
 
   setError(error: InputVariants['error']) {
     this._state.set({ error });
   }
 
-  setClass(classes: string): void {
-    this._additionalClasses.set(classes);
+  setClass(cls: ClassValue): void {
+    this._additionalClasses.set(cls);
   }
 }
