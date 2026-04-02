@@ -1,3 +1,4 @@
+.env
 node_modules
 apps/backend/.env
 apps/backend/prisma/prisma
