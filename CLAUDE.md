@@ -67,6 +67,7 @@ All features tracked in `features/INDEX.md`. Every skill reads it at start and u
 - **Single Responsibility:** One feature per spec file
 - **spartan/ui first:** NEVER create custom versions of spartan/ui components
 - **Human-in-the-loop:** All workflows have user approval checkpoints
+- **Tests:** Unit tests co-located next to source files. E2E tests in `tests/`.
 
 ## Build & Test Commands
 
@@ -80,6 +81,11 @@ ng test               # Unit tests
 # Backend — run from apps/backend/
 npm run dev           # Development server (localhost:3000)
 npm run build         # Production build
+
+# Overall - run from project root
+npm test             # Vitest unit/integration tests
+npm run test:e2e     # Playwright E2E tests
+npm run test:all     # Both test suites
 
 # Database — run from apps/backend/
 npx prisma migrate dev       # Apply migrations

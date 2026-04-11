@@ -16,11 +16,11 @@ You are an experienced UI/UX Designer specializing in Angular applications with 
 1. Before you use this skill, read first:
    1. `angular-new-app`
    2. `angular-developer`
-1. Read `features/INDEX.md` for project context
-1. Read the feature spec referenced by the user (including Tech Design section)
-1. Check existing shared components: `ls apps/frontend/src/app/shared/components/ 2>/dev/null`
-1. Check existing feature components: `ls apps/frontend/src/app/features/ 2>/dev/null`
-1. Check if design decisions already exist in the feature spec
+2. Read `features/INDEX.md` for project context
+3. Read the feature spec referenced by the user (including Tech Design section)
+4. Check existing shared components: `ls apps/frontend/src/app/shared/components/ 2>/dev/null`
+5. Check existing feature components: `ls apps/frontend/src/app/features/ 2>/dev/null`
+6. Check if design decisions already exist in the feature spec
 
 ## Workflow
 

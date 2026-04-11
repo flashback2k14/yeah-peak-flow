@@ -12,6 +12,7 @@ Big thanks to **[Alex Sprogis](https://alexsprogis.de)** for creating the [found
 npx degit git@github.com:flashback2k14/ai-dev-workflow.git my-project
 cd my-project
 npm install
+npx playwright install chromium
 ```
 
 ### 2. Start Development
@@ -63,16 +64,16 @@ To add more features later, run `/requirements` again - it detects the existing 
 
 ## Available Skills
 
-| Skill                 | Command         | What It Does                                                             |
-| --------------------- | --------------- | ------------------------------------------------------------------------ |
-| Requirements Engineer | `/requirements` | Creates feature specs with user stories, acceptance criteria, edge cases |
+| Skill                 | Command            | What It Does                                                             |
+| --------------------- | ------------------ | ------------------------------------------------------------------------ |
+| Requirements Engineer | `/requirements`    | Creates feature specs with user stories, acceptance criteria, edge cases |
 | Solution Architect    | `/architecture`    | Designs PM-friendly tech architecture (no code, only high-level design)  |
 | Frontend Designer     | `/frontend-design` | Designs UI look & feel: colors, layout, components, interactions         |
 | Frontend Developer    | `/frontend`        | Builds UI with Angular, spartan/ui and Tailwind CSS                      |
-| Backend Developer     | `/backend`      | Builds APIs, database schemas with Prisma and sqlite                     |
-| QA Engineer           | `/qa`           | Tests features against acceptance criteria + security audit              |
-| DevOps                | `/deploy`       | Deploys with docker compose with production-ready checks                 |
-| Help                  | `/help`         | Context-aware guide: shows where you are and what to do next             |
+| Backend Developer     | `/backend`         | Builds APIs, database schemas with Prisma and sqlite                     |
+| QA Engineer           | `/qa`              | Tests features against acceptance criteria + security audit              |
+| DevOps                | `/deploy`          | Deploys with docker compose with production-ready checks                 |
+| Help                  | `/help`            | Context-aware guide: shows where you are and what to do next             |
 
 ### How Skills Work
 
@@ -146,16 +147,16 @@ See `docs/production/` for detailed setup guides.
 
 Each skill is a structured workflow that Claude Code discovers automatically. Skills can run inline (in the main conversation) or as forked sub-agents (isolated context window).
 
-| Skill           | Execution          | Why?                                    |
-| --------------- | ------------------ | --------------------------------------- |
-| `/requirements` | Inline             | Needs live interaction with user        |
-| `/architecture`    | Inline             | Short output, user reviews in real-time    |
+| Skill              | Execution          | Why?                                        |
+| ------------------ | ------------------ | ------------------------------------------- |
+| `/requirements`    | Inline             | Needs live interaction with user            |
+| `/architecture`    | Inline             | Short output, user reviews in real-time     |
 | `/frontend-design` | Inline             | Needs live interaction for design decisions |
 | `/frontend`        | Sub-agent (forked) | Heavy file editing, lots of output          |
-| `/backend`      | Sub-agent (forked) | Heavy file editing, SQL, API code       |
-| `/qa`           | Sub-agent (forked) | Systematic testing, lots of output      |
-| `/deploy`       | Inline             | Deployment needs user oversight         |
-| `/help`         | Inline             | Quick status check and guidance         |
+| `/backend`         | Sub-agent (forked) | Heavy file editing, SQL, API code           |
+| `/qa`              | Sub-agent (forked) | Systematic testing, lots of output          |
+| `/deploy`          | Inline             | Deployment needs user oversight             |
+| `/help`            | Inline             | Quick status check and guidance             |
 
 ### Rules (`.claude/rules/`)
 

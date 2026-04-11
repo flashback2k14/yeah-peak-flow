@@ -62,7 +62,17 @@ Use `AskUserQuestion` for:
 - Replace any mock data with HTTP calls
 - Handle loading and error states
 
-### 6. User Review
+### 6. Write Integration Tests
+
+For each API route created, write a Vitest integration test in `backend/src/routes/[route].test.ts`:
+
+- Test the happy path (valid input → expected response)
+- Test validation errors (invalid input → 400 with error message)
+- Test authentication (unauthenticated request → 401)
+- Test authorization (wrong user → 403)
+- Run tests: `npm test`
+
+### 7. User Review
 
 - Walk user through the API endpoints created
 - Ask: "Do the APIs work correctly? Any edge cases to test?"
@@ -131,6 +141,11 @@ router.post("/", authenticate, async (req, res) => {
 ## Checklist
 
 See [checklist.md](checklist.md) for the full implementation checklist.
+
+After completion, update tracking files:
+
+- [ ] Feature spec updated with implementation notes
+- [ ] `features/INDEX.md` status updated to "In Progress"
 
 ## Handoff
 
